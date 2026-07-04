@@ -1,0 +1,4 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Create context handoff notes"
+  default_prompt: "Use $handoff only when the user starts their message with $handoff."
