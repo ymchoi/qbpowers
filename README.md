@@ -34,6 +34,8 @@ Details:
 
 ## model-sub-codex
 
+> **Strongly recommended: run Claude Code in ultracode mode when using this skill.** The bridge protocol is designed around `Workflow`-orchestrated subagents — schema-enforced relays (`bridge_error`/`work_dir`), parallel fan-out, and per-agent effort control all live on that spawn path — and ultracode routes subagent work through `Workflow` scripts by default, which is exactly where this mode performs best.
+
 Routes this session's subagent work through the OpenAI codex CLI. Every subagent becomes a **bridge**: a minimal Claude subagent whose only job is to run exactly one `codex exec` and relay its result. Claude Code stays the orchestrator; codex does the delegated work.
 
 ```
