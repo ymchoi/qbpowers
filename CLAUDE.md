@@ -1,0 +1,5 @@
+@AGENTS.md
+
+- `WebFetch` may silently truncate content from large pages. When a page must be read in full, or when there are signs the response was truncated, do not draw conclusions from that partial response — instead, download the full version with `curl -L -o` into a directory that follows the `AGENTS.md` temp-file convention (`.temp_files/YYYYMMDD_HHMMSS_<purpose>/`), then read it thoroughly with `Read`.
+- The same `curl -L -o` → `Read` fallback applies when `WebFetch` *fails outright*, not only when it truncates: a domain refusal ("unable to fetch from <domain>", from `robots.txt`) or a 403/402 bot block isn't proof the source is unreachable — plain `curl` (default UA) usually works, so fetch it instead of silently switching sources.
+- In ultracode mode, spawn subagents via `Workflow` scripts, not via the plain `Agent` tool (ordinary subagent creation).
