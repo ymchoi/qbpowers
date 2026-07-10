@@ -11,7 +11,7 @@
 - Experiment files, temporary files, and intermediate files that are safe to delete and whose paths are not explicitly specified must be stored under `{project root}/.temp_files/`. Create a subdirectory named with `YYYYMMDD_HHMMSS` plus a description of the purpose, and save the files there. Example: `.temp_files/20260327_232323_translate_test/test_data.json`
 
 ## Subagents
-- Unless the user explicitly specifies a subagent's `model`/`effort`: in codex, create subagents with `gpt-5.5`+`xhigh`. In claude code, default to `fable`+`max`, but since `effort` cannot be set through the plain `Agent` tool, specify `max` only on paths that support `effort` (such as the `Workflow` `agent()` options); on other paths, specify only the `fable` model and let `effort` inherit the session value.
+- Unless the user explicitly specifies a subagent's `model`/`effort`: in codex, create subagents with `gpt-5.6-sol`+`ultra`. In claude code, default to `opus`+`max`, but since `effort` cannot be set through the plain `Agent` tool, specify `max` only on paths that support `effort` (such as the `Workflow` `agent()` options); on other paths, specify only the `opus` model and let `effort` inherit the session value.
 - Inject the temporary-folder (.temp_files) rule into every subagent every time.
 - If more than three direct `mcp__context7__` calls are needed in one turn, delegate to new subagents in batches of three calls so context7 can be used without a call-count limit.
 - Even without explicit instruction from the user, make full and active use of parallel subagents for any work where subagents can help. Even when parallelism isn't needed, the technique of using just one subagent to save the main agent's context size is also very useful.

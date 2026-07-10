@@ -17,11 +17,11 @@ All skills are manual-only: they run when you type the command and never auto-tr
 
 *Claude Code only. Requires an installed, authenticated `codex` CLI.*
 
-Turns every subagent this session spawns into a thin relay that runs exactly one `codex exec` and hands the result back: Claude Code stays the orchestrator, codex does the delegated work. Optional arguments override codex's `config.toml` model/effort defaults. If codex hits a usage limit, the session waits for the reset and re-runs the blocked work; if a delegation fails, it fails loudly instead of quietly doing the task in Claude.
+Turns every subagent this session spawns into a thin relay that runs exactly one `codex exec` and hands the result back: Claude Code stays the orchestrator, codex does the delegated work. Optional arguments override the skill's model/effort defaults (`gpt-5.6-sol` + `ultra`). If codex hits a usage limit, the session waits for the reset and re-runs the blocked work; if a delegation fails, it fails loudly instead of quietly doing the task in Claude.
 
 ```
-/model-sub-codex                # codex config defaults
-/model-sub-codex gpt-5.5 high   # pin codex model + effort for all delegations
+/model-sub-codex                     # gpt-5.6-sol + ultra
+/model-sub-codex gpt-5.6-luna high   # pin codex model + effort for all delegations
 ```
 
 Works best in Claude Code's ultracode mode, where subagents run through `Workflow` scripts — the setup this skill is designed around. Delegated codex runs can only modify files when your current message authorized modification (see Portability).
@@ -34,8 +34,8 @@ Pins the default model and reasoning effort for every helper subagent Claude Cod
 
 ```
 /model-sub-claude haiku high    # cheap parallel fan-out from here on
-/model-sub-claude opus          # opus + max (effort omitted = max)
-/model-sub-claude fable max     # back to the project default
+/model-sub-claude fable         # fable + max (effort omitted = max)
+/model-sub-claude opus max      # back to the project default
 ```
 
 Forms a toggle group with `/model-sub-codex` — the most recent invocation wins.
