@@ -1,14 +1,10 @@
 # Third-Party Licenses
 
-다음 스킬들은 [mattpocock/skills](https://github.com/mattpocock/skills)의 스킬을 개조한 파생물이며, 원본의 MIT 라이선스가 적용됩니다.
-
-The following skills are modified derivatives of skills from
-[mattpocock/skills](https://github.com/mattpocock/skills) and remain under the
+The following skill is a modified derivative of a skill from
+[mattpocock/skills](https://github.com/mattpocock/skills) and remains under the
 original MIT License:
 
-- `claude/skills/diagnose-bug`, `codex/skills/diagnose-bug`
 - `claude/skills/grill-me`, `codex/skills/grill-me`
-- `claude/skills/tdd`, `codex/skills/tdd`
 
 ---
 
