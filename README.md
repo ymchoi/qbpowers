@@ -29,12 +29,10 @@ Turns every subagent this session spawns into a thin relay that runs exactly one
 Each side covers the other's weak spot, so you get reasoning quality, cost savings, and throughput together.
 
 ```
-/model-sub-codex                     # gpt-5.6-sol + xhigh
-/model-sub-codex gpt-5.6-luna        # luna defaults to max effort
-/model-sub-codex gpt-5.6-sol high    # pin model + effort for all delegations
+/model-sub-codex              # gpt-5.6-luna + max
+/model-sub-codex sol          # alias for gpt-5.6-sol
+/model-sub-codex sol high     # pin model + effort for all delegations
 ```
-
-If codex hits a usage limit, the session waits for the reset and re-runs the blocked work automatically.
 
 ## model-sub-claude
 
@@ -93,7 +91,7 @@ Free-text instructions steer length, language, format, and focus. (Codex trigger
 The skills assume a few conventions from their home project — substitute your own:
 
 - `.temp_files/` — a scratch-directory convention at the project root (used by handoff and model-sub-codex).
-- `<project-root>` and `<GATE_MARKER>` — placeholders in `model-sub-codex` and `AGENTS.md` for your project's absolute path and your file-modification approval phrase (drop that rule if you don't use such a gate).
+- `<GATE_MARKER>` — placeholder in `model-sub-codex` and `AGENTS.md` for your file-modification approval phrase (drop that rule if you don't use such a gate).
 
 ## License
 
@@ -130,12 +128,10 @@ Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 각자의 약점은 상대가 메우므로, 높은 추론 품질과 비용 절감, 작업 속도를 함께 달성하는 것이 목표다.
 
 ```
-/model-sub-codex                     # gpt-5.6-sol + xhigh
-/model-sub-codex gpt-5.6-luna        # luna는 effort 기본이 max
-/model-sub-codex gpt-5.6-sol high    # 모든 위임에 모델 + effort 고정
+/model-sub-codex              # gpt-5.6-luna + max
+/model-sub-codex sol          # gpt-5.6-sol 의 별칭
+/model-sub-codex sol high     # 모든 위임에 모델 + effort 고정
 ```
-
-codex가 사용량 한도에 걸리면 세션이 리셋을 기다렸다가 막힌 작업을 자동으로 다시 실행한다.
 
 ## model-sub-claude
 
@@ -194,7 +190,7 @@ codex가 사용량 한도에 걸리면 세션이 리셋을 기다렸다가 막�
 스킬들은 자신이 태어난 프로젝트의 몇 가지 관례를 전제한다 — 각자의 것으로 바꿔 쓰면 된다.
 
 - `.temp_files/` — 프로젝트 루트의 스크래치 디렉터리 관례(handoff와 model-sub-codex가 사용).
-- `<project-root>`와 `<GATE_MARKER>` — `model-sub-codex`와 `AGENTS.md`의 플레이스홀더로, 각각 프로젝트의 절대경로와 파일 수정 승인 문구를 뜻한다(그런 게이트를 쓰지 않는다면 해당 규칙을 빼면 된다).
+- `<GATE_MARKER>` — `model-sub-codex`와 `AGENTS.md`의 플레이스홀더로, 파일 수정 승인 문구를 뜻한다(그런 게이트를 쓰지 않는다면 해당 규칙을 빼면 된다).
 
 ## 라이선스
 
