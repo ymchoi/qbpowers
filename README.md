@@ -11,7 +11,7 @@ Agent skills for Claude Code and the OpenAI Codex CLI — a public snapshot of s
 | [grill-me](#grill-me) | ✓ | ✓ | Relentless questioning that aligns the agent's understanding with yours. |
 | [handoff](#handoff) | ✓ | ✓ | Session handover document a context-blind agent can resume from. |
 
-All skills are manual-only: they run when you type the command and never auto-trigger.
+All skills are manual-only: they run when you type the command.
 
 ## model-sub-codex
 
@@ -19,7 +19,7 @@ All skills are manual-only: they run when you type the command and never auto-tr
 
 Works best in Claude Code's ultracode mode.
 
-Turns every subagent this session spawns into a thin relay that runs exactly one `codex exec` and hands the result back.
+Turns every subagent this session spawns into a thin relay that runs a single `codex exec` delegation and hands the result back.
 
 **Design intent** — combine only the strengths of both models.
 
@@ -84,7 +84,7 @@ Free-text instructions steer length, language, format, and focus. (Codex trigger
 ## Repo extras
 
 - Root `AGENTS.md` / `CLAUDE.md` — the live agent instruction files these skills grew out of; project-specific sections removed, usable as a template.
-- `utils/fetch_web/` — Patchright-based fallback page fetcher used by the research rules in `AGENTS.md`. Requires `patchright==1.59.1` and Chrome (`pip install patchright && patchright install chrome`); always runs headed — Patchright loses its bot-detection evasion headless.
+- `utils/fetch_web/` — Patchright-based fallback page fetcher used by the research rules in `AGENTS.md`. Requires `patchright==1.59.1` and Chrome (`pip install patchright==1.59.1 && patchright install chrome`); always runs headed — Patchright loses its bot-detection evasion headless.
 
 ## Portability
 
@@ -110,7 +110,7 @@ Claude Code와 OpenAI Codex CLI를 위한 에이전트 스킬 모음 — 개인 
 | `grill-me` | ✓ | ✓ | 압박 질문을 반복해 에이전트와 사용자의 이해를 일치시킨다. |
 | `handoff` | ✓ | ✓ | 맥락 없는 에이전트도 이어받을 수 있는 인수인계 문서를 만든다. |
 
-모든 스킬은 수동 전용이다 — 명령을 입력했을 때만 실행되며 자동으로 트리거되지 않는다.
+모든 스킬은 수동 전용이다 — 명령을 입력했을 때만 실행된다.
 
 ## model-sub-codex
 
@@ -118,7 +118,7 @@ Claude Code와 OpenAI Codex CLI를 위한 에이전트 스킬 모음 — 개인 
 
 Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 
-이 세션이 생성하는 모든 subagent를, `codex exec`을 정확히 한 번 실행하고 결과만 되돌려주는 얇은 릴레이로 바꾼다.
+이 세션이 생성하는 모든 subagent를, 한 번의 `codex exec` 위임을 실행하고 결과만 되돌려주는 얇은 릴레이로 바꾼다.
 
 **설계 의도** — 두 모델의 강점만 조합한다.
 
@@ -183,7 +183,7 @@ Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 ## 저장소 부가물
 
 - 루트 `AGENTS.md` / `CLAUDE.md` — 이 스킬들이 자라난 실제 에이전트 지침 파일. 프로젝트 고유 섹션은 제거했으며 템플릿으로 쓸 수 있다.
-- `utils/fetch_web/` — `AGENTS.md`의 리서치 규칙이 사용하는 Patchright 기반 폴백 페이지 페처. `patchright==1.59.1`과 Chrome이 필요하고(`pip install patchright && patchright install chrome`), 항상 headed로 동작한다 — Patchright는 headless에서 봇 탐지 회피 효과를 잃는다.
+- `utils/fetch_web/` — `AGENTS.md`의 리서치 규칙이 사용하는 Patchright 기반 폴백 페이지 페처. `patchright==1.59.1`과 Chrome이 필요하고(`pip install patchright==1.59.1 && patchright install chrome`), 항상 headed로 동작한다 — Patchright는 headless에서 봇 탐지 회피 효과를 잃는다.
 
 ## 이식성
 

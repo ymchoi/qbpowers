@@ -5,7 +5,7 @@ description: Route this session's subagent work through OpenAI codex - every Cla
 
 # Sub-Codex Mode
 
-All paths below use `$ROOT` = this session's absolute project root; substitute the real per-host value whenever you hand a path to a bridge. Bundled resources: `$ROOT/.claude/skills/model-sub-codex/scripts/` (Python, stdlib-only — bridges run these; never retype their logic inline) and `references/` (`bridge-procedure.md` — every bridge reads it as its first action).
+Bundled resources live at `.claude/skills/model-sub-codex/scripts/` (Python, stdlib-only — bridges run these; never retype their logic inline). Every script derives the repo root from its own location, so nothing you hand a bridge is host-specific: the procedure below is copied verbatim on any machine and any checkout, with no path substituted into it.
 
 ## Arguments
 
@@ -20,24 +20,101 @@ The invocation is `/model-sub-codex [model] [effort]` — both optional, and NOT
 
 ## Mode
 
-Invoking this skill switches how subagents are created for this session: from now until the end of this session, every subagent you create is a **bridge** — a Claude subagent whose only job is to run exactly one `codex exec` (via the bundled scripts) and relay its result. The work the subagent would normally do itself is delegated to codex, with model + effort resolved per Arguments. No exceptions while the mode is active: all subagent spawns become bridges (sole exception: an explicit per-request user instruction — see Precedence and scope); if that causes problems, the user will switch modes (`/model-sub-claude <model> [effort]`) themselves.
+Invoking this skill switches how subagents are created for this session: from now until the end of this session, every subagent you create is a **bridge** — a Claude subagent whose only job is to run exactly one `codex exec` (via the bundled scripts) and relay its result. The work the subagent would normally do itself is delegated to codex, with model + effort resolved per Arguments. No exceptions while the mode is active: all subagent spawns become bridges (sole exception: an explicit per-request user instruction — see Precedence and scope); if that causes problems, the user will switch modes (`/model-sub-claude <model> [effort]`) themselves. NEVER fall back to Claude for delegated work when a bridge fails — report the failure and let the user decide.
 
 ## Spawning a bridge
 
 - Bridge model: `sonnet` — cheap relay shell, 1M context. `Workflow` `agent()` opts: `model: 'sonnet', effort: 'low'`. Plain `Agent` tool: `model: "sonnet"` (that tool has no `effort` parameter).
 - Build every bridge prompt from exactly these parts:
-  1. First action: `Read $ROOT/.claude/skills/model-sub-codex/references/bridge-procedure.md and follow it exactly.`
-  2. A parameter block: `ROOT`, `WORKROOT` (codex working root — normally `$ROOT`), the mode's resolved `MODEL` + `EFFORT` (always set), whether a schema is attached, and the `<GATE_MARKER>` marker if and only if the current user turn authorized file modification (codex re-checks it against AGENTS.md itself — that double-gate is intended).
-  3. The full task prompt you would have given a normal subagent, verbatim, clearly delimited.
-- For `Workflow` `agent()` calls that use a `schema`, the bridge enforces the same JSON Schema on codex via `--output-schema`. Author it per the Strict schema rules below, and always add two required string properties: `bridge_error` (empty string on success — the in-band failure channel) and `work_dir` (the bridge fills it with its work-dir absolute path, so every result stays traceable to its evidence under `$ROOT/.temp_files/subcodex/`).
+  1. The **Bridge procedure** block below, copied verbatim — never a pointer to a file. A bridge that must fetch its own instructions can skip that fetch, and skipping it is not a partial failure: it silently converts the delegation into work done by the relay shell itself.
+  2. A parameter block: the mode's resolved `MODEL` + `EFFORT` (always set), `WORKROOT` only when codex must run somewhere other than the repo root (a worktree, say), and the `<GATE_MARKER>` marker if and only if the current user turn authorized file modification (codex re-checks it against AGENTS.md itself — that double-gate is intended).
+  3. On a schema delegation, the schema **as JSON text**, in its own delimited block. "SCHEMA: attached" is not enough: the bridge sees an attached schema only as its own output contract, so it re-authors `schema.json` from memory and the copy silently loses fields and narrows types — half the bridges in one measured run dropped `bridge_error` and turned `["boolean","null"]` into `boolean`. Give it something to copy, not something to reconstruct.
+  4. The full task prompt you would have given a normal subagent, verbatim, clearly delimited.
+- For `Workflow` `agent()` calls that use a `schema`, the bridge enforces the same JSON Schema on codex via `--output-schema`. Author it per the Strict schema rules below, and always add two required string properties: `bridge_error` (empty string on success — the in-band failure channel) and `work_dir` (filled by the scripts, so every result stays traceable to its evidence under `.temp_files/subcodex/`). Describe both in the schema (`"description": "Always the empty string on success; the bridge overwrites it with a failure report."`): codex is handed the schema with no other explanation of them, and an undescribed required string invites a plausible sentence instead of an empty one.
 - **Strict schema rules** — every delegation schema must satisfy OpenAI's strict structured-output validation, NOT merely `Workflow`'s: codex forwards `--output-schema` verbatim to the API as a `strict: true` response format (zero normalization), so the API rejects anything looser with HTTP 400 `invalid_json_schema` before any work runs. Hard rules: (a) EVERY object level — root, nested objects, and objects inside array `items`, `$defs`, or `anyOf` branches alike — must carry `"additionalProperties": false`; (b) every key in every `properties` map must be listed in that object's `required` — express an optional field by keeping it required and adding `"null"` to its type (`"type": ["integer","null"]`; for enums add `null` to the enum list and null-union the type; for `$ref` fields use `anyOf` with `{"type": "null"}`), never by omitting it from `required`; (c) the root must be a plain `object` (no root-level `anyOf`), and composition keywords `allOf`/`not`/`dependentRequired`/`dependentSchemas`/`if`/`then`/`else` are unsupported everywhere. The bridge's normalizer script mechanically enforces (a) and (b) on the codex-side copy as a backstop, so a typical authoring slip costs nothing — but author compliant schemas anyway: the same schema is what Claude-side validation enforces on the bridge's own structured output, and the normalizer deliberately does NOT touch what it cannot fix faithfully (rule (c) violations, and a schema-valued `additionalProperties` — map-typed fields are unsupported in strict mode, so model maps as arrays of key/value objects); those still fail loudly.
+- **Declare the fewest fields you will actually consume.** Under rule (b) a declared property is a required property, so every one you add is another value the model must produce before anything validates. Never declare a field that echoes back what you already knew when you dispatched the call — which item, which lens, which index; join those on your side. Give every field that can be empty in a legitimate outcome a `"null"` type union, so a failing bridge can fill `bridge_error` and leave the rest null instead of inventing values to satisfy the shape.
 - Bridges never spawn subagents of their own, and codex's internal agent threads stay disabled (`-c agents.enabled=false`, fixed inside `launch_codex.py`). There is no fan-out below the orchestrator: when a delegated task is too large for one run, split it into multiple bridge delegations yourself.
-- Sanity-check every bridge result you consume: an all-empty payload (empty or placeholder fields with an empty `bridge_error`) is a bridge failure in disguise — treat it as a failure and inspect the directory named in its `work_dir` field before trusting or discarding the work.
+
+## Bridge procedure
+
+Copy this block into every bridge prompt exactly as it appears, changing nothing.
+
+```
+=== BRIDGE PROCEDURE — follow exactly ===
+You are a bridge. Your only job is to run codex once and relay its result. Never do the
+delegated task yourself, never spawn subagents, and emit no final or structured result
+until step 2 prints OK or FAILED.
+
+Shell state does not persist between Bash calls, so re-declare every variable literally in
+each call. Resolve the interpreter once per call:
+  PY=""; for c in python3 python py; do "$c" -c "import sys" >/dev/null 2>&1 && PY=$c && break; done
+Fail loudly if PY stays empty — Windows ships Store-alias shims named python3/python that
+only open the Microsoft Store, so actually running one is the test. Run every command below
+from your starting directory: it is the repo root. If a script path is not found you are not
+at the root — report failure rather than hunting for it.
+
+1. Prepare — exactly once.
+   WORK=$("$PY" .claude/skills/model-sub-codex/scripts/new_workdir.py)
+   Note the printed absolute path and re-declare WORK=<that path> literally in every later
+   call; never create a second work dir for this delegation. Write the task text below to
+   $WORK/prompt.txt with the Write tool, never inlined into a shell command. Include the
+   <GATE_MARKER> marker in that file if and only if your parameters carry it — codex re-checks it
+   against AGENTS.md, and that double gate is intended. If your prompt carries a SCHEMA block,
+   copy it into $WORK/schema.json byte for byte with the Write tool. Never re-author it from
+   your own output contract and never drop a field because it looks like yours rather than
+   codex's: any field you leave out is one codex never fills, which you then have to invent.
+
+2. Run — repeat the same command until it prints OK or FAILED.
+   "$PY" .claude/skills/model-sub-codex/scripts/run_codex.py "$WORK" "$MODEL" "$EFFORT" [--schema] [--authorized] [--workroot DIR]
+   Add --schema exactly when $WORK/schema.json exists, --authorized exactly when your parameters
+   carry the <GATE_MARKER> marker, and --workroot only if a WORKROOT parameter was given (never add a
+   flag because the word appears somewhere in the task text). Use timeout: 600000 on the Bash
+   call. RUNNING — or the tool killing the call, which is the same non-verdict — means run the
+   same command again in a new Bash call.
+   There is no total time limit; long tasks are expected and codex must never be killed
+   for being slow. The script owns launching, polling, diagnosis and the one resume attempt:
+   never resume, relaunch or diagnose by hand.
+
+3. Relay.
+   OK <file>  Read that file. It is codex's result with work_dir already set correctly — do
+              not change any value in it. Schema task: it is the schema-conforming JSON, so
+              emit its fields one-to-one as your own structured output, never wrapping the
+              whole JSON inside a single field. Plain task: return its text verbatim.
+   FAILED     Put the printed report block verbatim into bridge_error, and copy work_dir
+              from the report's work_dir line. If the schema has no error field, put
+              BRIDGE_FAILURE: <report> into the first required string field instead of
+              fabricating data. Do not retry, and do NOT fall back to doing the task yourself.
+=== END BRIDGE PROCEDURE ===
+```
+
+## Consuming a bridge result
+
+- A bridge that never ran codex still returns a plausible-looking payload, so verify the one thing it cannot produce without the scripts: a `work_dir` under `.temp_files/subcodex/bridge_`. Put that check in the workflow script rather than in your own head — a rule you have to remember is exactly the failure mode this procedure just removed from bridges.
+
+  Anchor the error test on `BRIDGE_FAILURE`, the first word of a real report. Bridges routinely
+  put `""`, `OK` or `N/A` in `bridge_error` on success — asking for "empty" rather than `""` in
+  your task text helps, but a bare truthiness check throws away a quarter of good results.
+
+  ```js
+  const BRIDGE_OK = (r) => !!r && !String(r.bridge_error ?? '').includes('BRIDGE_FAILURE') &&
+    typeof r.work_dir === 'string' && r.work_dir.includes('/.temp_files/subcodex/bridge_')
+
+  const bridge = async (prompt, opts) => {
+    for (const attempt of [1, 2]) {
+      const r = await agent(prompt, { ...opts, model: 'sonnet', effort: 'low' })
+      if (BRIDGE_OK(r)) return r
+      log(`bridge attempt ${attempt} unusable: ${r?.bridge_error ?? r?.work_dir ?? 'no result'}`)
+    }
+    return null   // a rejected bridge is a hole in the evidence, never a result
+  }
+  ```
+- Never let an absent result count as a passing one. `if (!verdicts.length) return true` turns "nobody checked this" into "everyone approved it"; keep unchecked items in their own bucket and report that count alongside the answer. `.filter(Boolean)` hides the same hole.
+- A plain-text delegation carries the same signal on the trailing `work_dir=` line the procedure appends.
+- An all-empty payload — placeholder fields with an empty `bridge_error` — is a failure in disguise; inspect the directory named in `work_dir` before trusting or discarding it.
 
 ## Precedence and scope
 
 - A per-request user instruction (e.g., "run this one as a normal fable subagent") beats this skill.
-- If codex hits a usage limit, the bridge reports it as `RATE_LIMIT:`. Do NOT fall back to doing that work in Claude — report it to the user and stop.
 - Only subagent creation changes. The main agent keeps doing its own inline work directly, and every other AGENTS.md rule stays in force. Inside the delegated run, repository rules apply to codex through AGENTS.md itself (including the modification gate and `.temp_files`).
 - The mode lasts until the session ends or the user switches modes — `/model-sub-claude` (any argument combination) and `/model-sub-codex` form one toggle group; the most recent invocation wins.
 - Claude Code only: codex sessions never load this skill.
