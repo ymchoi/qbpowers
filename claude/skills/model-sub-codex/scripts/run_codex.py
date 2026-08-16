@@ -118,18 +118,23 @@ def session_id(work: Path) -> str | None:
 def write_relay(work: Path, attempt: int, schema: bool) -> Path:
     """Copy codex's output with work_dir already set, so the bridge only copies.
 
+    work_dir is emitted as_posix everywhere it leaves this file, including the
+    failure report: it is read by a JavaScript guard in the calling workflow
+    that cannot know what a separator looks like here, and a native Windows
+    path silently failed that check, discarding results that were fine.
+
     Raises ValueError if a schema run produced something that is not a JSON
     object; --output-schema should make that impossible, so it is a real fault.
     """
     source = (work / f"last{_suffix(attempt)}.txt").read_text(encoding="utf-8")
     if not schema:
         relay = work / "relay.txt"
-        relay.write_text(f"{source.rstrip()}\n\nwork_dir={work}\n", encoding="utf-8")
+        relay.write_text(f"{source.rstrip()}\n\nwork_dir={work.as_posix()}\n", encoding="utf-8")
         return relay
     payload = json.loads(source)
     if not isinstance(payload, dict):
         raise ValueError(f"schema run returned {type(payload).__name__}, not a JSON object")
-    payload["work_dir"] = str(work)
+    payload["work_dir"] = work.as_posix()
     relay = work / "relay.json"
     relay.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
     return relay
@@ -139,7 +144,7 @@ def report(work: Path, attempt: int, kind: str, evidence: list[str], authorized:
     code = exit_code(work, attempt)
     lines = [
         f"BRIDGE_FAILURE: codex delegation failed on attempt {attempt} ({kind})",
-        f"work_dir: {work}",
+        f"work_dir: {work.as_posix()}",
         f"exit_code: {code if code is not None else 'missing — the wrapper crashed'}",
         f"session_id: {session_id(work) or 'none'}",
     ]

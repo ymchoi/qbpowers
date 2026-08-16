@@ -15,7 +15,7 @@ All skills are manual-only: they run when you type the command.
 
 ## model-sub-codex
 
-*Claude Code only. Requires an installed, authenticated `codex` CLI.*
+*Claude Code only. Requires an installed, authenticated `codex` CLI, and Python 3.14+.*
 
 Works best in Claude Code's ultracode mode.
 
@@ -114,7 +114,7 @@ Claude Code와 OpenAI Codex CLI를 위한 에이전트 스킬 모음 — 개인 
 
 ## model-sub-codex
 
-*Claude Code 전용. 설치·인증된 `codex` CLI 필요.*
+*Claude Code 전용. 설치·인증된 `codex` CLI와 Python 3.14+ 필요.*
 
 Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 

@@ -5,7 +5,7 @@ description: Route this session's subagent work through OpenAI codex - every Cla
 
 # Sub-Codex Mode
 
-Bundled resources live at `.claude/skills/model-sub-codex/scripts/` (Python, stdlib-only — bridges run these; never retype their logic inline). Every script derives the repo root from its own location, so nothing you hand a bridge is host-specific: the procedure below is copied verbatim on any machine and any checkout, with no path substituted into it.
+Bundled resources live at `.claude/skills/model-sub-codex/scripts/` (stdlib-only Python behind one `sh` entry point — bridges run these; never retype their logic inline). Every script derives the repo root from its own location, so nothing you hand a bridge is host-specific: the procedure below is copied verbatim on any machine and any checkout, with no path substituted into it.
 
 ## Arguments
 
@@ -46,15 +46,11 @@ delegated task yourself, never spawn subagents, and emit no final or structured 
 until step 2 prints OK or FAILED.
 
 Shell state does not persist between Bash calls, so re-declare every variable literally in
-each call. Resolve the interpreter once per call:
-  PY=""; for c in python3 python py; do "$c" -c "import sys" >/dev/null 2>&1 && PY=$c && break; done
-Fail loudly if PY stays empty — Windows ships Store-alias shims named python3/python that
-only open the Microsoft Store, so actually running one is the test. Run every command below
-from your starting directory: it is the repo root. If a script path is not found you are not
-at the root — report failure rather than hunting for it.
+each call. Run every command below from your starting directory: it is the repo root. If a
+script path is not found you are not at the root — report failure rather than hunting for it.
 
 1. Prepare — exactly once.
-   WORK=$("$PY" .claude/skills/model-sub-codex/scripts/new_workdir.py)
+   WORK=$(sh .claude/skills/model-sub-codex/scripts/bridge.sh new_workdir.py)
    Note the printed absolute path and re-declare WORK=<that path> literally in every later
    call; never create a second work dir for this delegation. Write the task text below to
    $WORK/prompt.txt with the Write tool, never inlined into a shell command. Include the
@@ -65,7 +61,7 @@ at the root — report failure rather than hunting for it.
    codex's: any field you leave out is one codex never fills, which you then have to invent.
 
 2. Run — repeat the same command until it prints OK or FAILED.
-   "$PY" .claude/skills/model-sub-codex/scripts/run_codex.py "$WORK" "$MODEL" "$EFFORT" [--schema] [--authorized] [--workroot DIR]
+   sh .claude/skills/model-sub-codex/scripts/bridge.sh run_codex.py "$WORK" "$MODEL" "$EFFORT" [--schema] [--authorized] [--workroot DIR]
    Add --schema exactly when $WORK/schema.json exists, --authorized exactly when your parameters
    carry the <GATE_MARKER> marker, and --workroot only if a WORKROOT parameter was given (never add a
    flag because the word appears somewhere in the task text). Use timeout: 600000 on the Bash

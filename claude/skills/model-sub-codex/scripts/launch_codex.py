@@ -10,8 +10,8 @@ rejects an empty session id rather than silently downgrading to a fresh run:
 it reads prompt2.txt and writes the same set with a "2" suffix, leaving the
 first attempt's files untouched as evidence.
 
-The parent re-invokes this file with --wrapper as a detached process
-(start_new_session on POSIX, DETACHED_PROCESS on Windows), records the
+The parent re-invokes this file with --wrapper as a background process
+(start_new_session on POSIX, CREATE_NO_WINDOW on Windows), records the
 wrapper pid, and returns immediately. The wrapper blocks on codex and writes
 the exit code when it finishes — that file appearing is the only completion
 signal poll_codex.py trusts.
@@ -102,9 +102,13 @@ def spawn_detached(args: argparse.Namespace, raw_argv: list[str]) -> int:
         "close_fds": True,
     }
     if os.name == "nt":
-        detached = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
+        # Not DETACHED_PROCESS: that strips the wrapper of the windowless console the
+        # caller runs in, so the next console child allocates a fresh one and Windows
+        # Terminal draws it as a real window. CREATE_NO_WINDOW leaves a console every
+        # descendant inherits, codex included, and still outlives the Bash call.
+        no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
         new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
-        kwargs["creationflags"] = detached | new_group
+        kwargs["creationflags"] = no_window | new_group
     else:
         kwargs["start_new_session"] = True
     proc = subprocess.Popen(wrapper_argv, **kwargs)  # type: ignore[call-overload]

@@ -24,7 +24,9 @@ def pid_alive(pid: int) -> bool:
 
         process_query_limited_information = 0x1000
         still_active = 259
-        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        # attr-defined fires on POSIX, where windll is absent; unused-ignore keeps the
+        # same line clean on Windows, where it very much is defined.
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined,unused-ignore]
         handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
         if not handle:
             return False
