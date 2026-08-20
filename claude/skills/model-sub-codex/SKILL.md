@@ -24,13 +24,22 @@ Invoking this skill switches how subagents are created for this session: from no
 
 ## Spawning a bridge
 
-- Bridge model: `sonnet` — cheap relay shell, 1M context. `Workflow` `agent()` opts: `model: 'sonnet', effort: 'low'`. Plain `Agent` tool: `model: "sonnet"` (that tool has no `effort` parameter).
+- Bridge model: `opus` — the relay must reproduce codex's result one-to-one, neither rewriting nor shortening it. `Workflow` `agent()` opts: `model: 'opus', effort: 'medium'`. Plain `Agent` tool: `model: "opus"` (that tool has no `effort` parameter).
+- Bridges inherit your shell's current directory at the moment you spawn them, so `cd` to the repo root before spawning any: otherwise every bridge in the batch starts somewhere else at once, and the procedure's root assumption is false for all of them.
 - Build every bridge prompt from exactly these parts:
   1. The **Bridge procedure** block below, copied verbatim — never a pointer to a file. A bridge that must fetch its own instructions can skip that fetch, and skipping it is not a partial failure: it silently converts the delegation into work done by the relay shell itself.
   2. A parameter block: the mode's resolved `MODEL` + `EFFORT` (always set), `WORKROOT` only when codex must run somewhere other than the repo root (a worktree, say), and the `<GATE_MARKER>` marker if and only if the current user turn authorized file modification (codex re-checks it against AGENTS.md itself — that double-gate is intended).
   3. On a schema delegation, the schema **as JSON text**, in its own delimited block. "SCHEMA: attached" is not enough: the bridge sees an attached schema only as its own output contract, so it re-authors `schema.json` from memory and the copy silently loses fields and narrows types. Give it something to copy, not something to reconstruct.
-  4. The full task prompt you would have given a normal subagent, verbatim, clearly delimited.
-- For `Workflow` `agent()` calls that use a `schema`, the bridge enforces the same JSON Schema on codex via `--output-schema`. Author it per the Strict schema rules below, and always add two required string properties: `bridge_error` (empty string on success — the in-band failure channel) and `work_dir` (filled by the scripts, so every result stays traceable to its evidence under `.temp_files/subcodex/`). Describe both in the schema (`"description": "Always the empty string on success; the bridge overwrites it with a failure report."`): codex is handed the schema with no other explanation of them, and an undescribed required string invites a plausible sentence instead of an empty one.
+  4. The full task prompt you would have given a normal subagent, verbatim, clearly delimited — and with nothing in it about `bridge_error` or `work_dir`. An instruction to leave those two empty reaches the bridge as readily as codex, and the bridge is the one that must not leave them empty.
+- For `Workflow` `agent()` calls that use a `schema`, the bridge enforces the same JSON Schema on codex via `--output-schema`. Author it per the Strict schema rules below, and always add two required string properties: `bridge_error` (empty string on success — the in-band failure channel) and `work_dir` (filled by the scripts, so every result stays traceable to its evidence under `.temp_files/subcodex/`). Copy both descriptions in verbatim instead of wording your own — codex is handed the schema with no other explanation of these two fields, an undescribed required string invites a plausible sentence, and a description you write yourself invites one that contradicts step 3 of the procedure:
+
+  ```json
+  "bridge_error": { "type": "string", "description":
+    "Always the empty string on success; the bridge overwrites it with a failure report." },
+  "work_dir":     { "type": "string", "description":
+    "Absolute path of this delegation's work directory under .temp_files/subcodex/. The scripts fill it in; relay whatever value the result file carries." }
+  ```
+
 - **Strict schema rules** — every delegation schema must satisfy OpenAI's strict structured-output validation, NOT merely `Workflow`'s: codex forwards `--output-schema` verbatim to the API as a `strict: true` response format (zero normalization), so the API rejects anything looser with HTTP 400 `invalid_json_schema` before any work runs. Hard rules: (a) EVERY object level — root, nested objects, and objects inside array `items`, `$defs`, or `anyOf` branches alike — must carry `"additionalProperties": false`; (b) every key in every `properties` map must be listed in that object's `required` — express an optional field by keeping it required and adding `"null"` to its type (`"type": ["integer","null"]`; for enums add `null` to the enum list and null-union the type; for `$ref` fields use `anyOf` with `{"type": "null"}`), never by omitting it from `required`; (c) the root must be a plain `object` (no root-level `anyOf`), and composition keywords `allOf`/`not`/`dependentRequired`/`dependentSchemas`/`if`/`then`/`else` are unsupported everywhere. The bridge's normalizer script mechanically enforces (a) and (b) on the codex-side copy as a backstop, so a typical authoring slip costs nothing — but author compliant schemas anyway: the same schema is what Claude-side validation enforces on the bridge's own structured output, and the normalizer deliberately does NOT touch what it cannot fix faithfully (rule (c) violations, and a schema-valued `additionalProperties` — map-typed fields are unsupported in strict mode, so model maps as arrays of key/value objects); those still fail loudly.
 - **Declare the fewest fields you will actually consume.** Under rule (b) a declared property is a required property, so every one you add is another value the model must produce before anything validates. Never declare a field that echoes back what you already knew when you dispatched the call — which item, which lens, which index; join those on your side. Express "no value" as an empty string or empty array rather than a `"null"` type union: the relay shell transcribes the result into its own tool call, and it drops a `null` far more readily than it drops text. Where a boolean or number genuinely has an unknown state, give it a string enum with an explicit `unknown` member instead of null-unioning it.
 - Bridges never spawn subagents of their own, and codex's internal agent threads stay disabled (`-c agents.enabled=false`, fixed inside `launch_codex.py`). There is no fan-out below the orchestrator: when a delegated task is too large for one run, split it into multiple bridge delegations yourself.
@@ -46,8 +55,8 @@ delegated task yourself, never spawn subagents, and emit no final or structured 
 until step 2 prints OK or FAILED.
 
 Shell state does not persist between Bash calls, so re-declare every variable literally in
-each call. Run every command below from your starting directory: it is the repo root. If a
-script path is not found you are not at the root — report failure rather than hunting for it.
+each call. Run every command below from the repo root. Your starting directory is normally it;
+if a script path is not found it is not: report failure instead of searching for the root.
 
 1. Prepare — exactly once.
    WORK=$(sh .claude/skills/model-sub-codex/scripts/bridge.sh new_workdir.py)
@@ -97,7 +106,7 @@ script path is not found you are not at the root — report failure rather than 
 
   const bridge = async (prompt, opts) => {
     for (const attempt of [1, 2]) {
-      const r = await agent(prompt, { ...opts, model: 'sonnet', effort: 'low' })
+      const r = await agent(prompt, { ...opts, model: 'opus', effort: 'medium' })
       if (BRIDGE_OK(r)) return r
       log(`bridge attempt ${attempt} unusable: ${r?.bridge_error ?? r?.work_dir ?? 'no result'}`)
     }
