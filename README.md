@@ -10,6 +10,7 @@ Agent skills for Claude Code and the OpenAI Codex CLI — a public snapshot of s
 | [model-sub-claude](#model-sub-claude) | ✓ | — | Pin the session's default subagent model + effort. |
 | [grill-me](#grill-me) | ✓ | ✓ | Relentless questioning that aligns the agent's understanding with yours. |
 | [handoff](#handoff) | ✓ | ✓ | Session handover document a context-blind agent can resume from. |
+| [wait-what](#wait-what) | ✓ | — | Re-explain the previous answer in plainer language. |
 
 All skills are manual-only: they run when you type the command.
 
@@ -76,6 +77,18 @@ Writes a handover document for the current session so a fresh agent with zero ch
 
 Free-text instructions steer length, language, format, and focus. (Codex trigger: `$handoff`.)
 
+## wait-what
+
+*Claude Code only. Answers in Korean.*
+
+For when an answer did not land. It re-pitches the previous response with a little context restored, rewritten under the clarity principles of ASD-STE100 Simplified Technical English — one idea per sentence, short sentences, active voice, the same word for the same thing.
+
+```
+/wait-what
+```
+
+ASD-STE100 is a controlled English written for aircraft maintenance manuals. Only its clarity principles are borrowed, not its approved word list; the reply itself is Korean. Edit the skill's one line if you want another language.
+
 ## Installation
 
 - **Claude Code**: copy a directory under `claude/skills/` into your project's `.claude/skills/`.
@@ -95,7 +108,7 @@ The skills assume a few conventions from their home project — substitute your 
 
 ## License
 
-Original skills (handoff, model-sub-claude, model-sub-codex) and everything else authored here: [Unlicense](LICENSE) — public domain. Derived skill (grill-me): modified from [mattpocock/skills](https://github.com/mattpocock/skills), MIT licensed — see [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+Original skills (handoff, model-sub-claude, model-sub-codex, wait-what) and everything else authored here: [Unlicense](LICENSE) — public domain. Derived skill (grill-me): modified from [mattpocock/skills](https://github.com/mattpocock/skills), MIT licensed — see [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 ---
 
@@ -109,6 +122,7 @@ Claude Code와 OpenAI Codex CLI를 위한 에이전트 스킬 모음 — 개인 
 | `model-sub-claude` | ✓ | — | 세션의 기본 subagent 모델 + effort를 고정한다. |
 | `grill-me` | ✓ | ✓ | 압박 질문을 반복해 에이전트와 사용자의 이해를 일치시킨다. |
 | `handoff` | ✓ | ✓ | 맥락 없는 에이전트도 이어받을 수 있는 인수인계 문서를 만든다. |
+| `wait-what` | ✓ | — | 직전 답변을 더 쉬운 말로 다시 설명한다. |
 
 모든 스킬은 수동 전용이다 — 명령을 입력했을 때만 실행된다.
 
@@ -175,6 +189,18 @@ Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 
 자유 서술 지시로 길이·언어·형식·초점을 조정한다. (Codex 트리거: `$handoff`.)
 
+## wait-what
+
+*Claude Code 전용. 한국어로 답한다.*
+
+답변이 와닿지 않았을 때 쓴다. 맥락을 조금 되살려 직전 답변을 다시 설명하되, ASD-STE100 Simplified Technical English의 명료성 원칙 — 한 문장에 한 가지, 짧은 문장, 능동태, 같은 뜻에는 같은 낱말 — 을 적용해 다시 쓴다.
+
+```
+/wait-what
+```
+
+ASD-STE100은 항공기 정비 설명서를 위해 만든 통제 영어다. 승인 어휘 목록이 아니라 명료성 원칙만 빌려 왔고, 답변 자체는 한국어다. 다른 언어를 원하면 스킬의 한 줄을 고치면 된다.
+
 ## 설치
 
 - **Claude Code**: `claude/skills/` 아래 디렉터리를 프로젝트의 `.claude/skills/`로 복사한다.
@@ -194,4 +220,4 @@ Claude Code의 ultracode 모드에서 가장 잘 동작한다.
 
 ## 라이선스
 
-여기서 직접 작성한 스킬(handoff, model-sub-claude, model-sub-codex)과 그 밖의 모든 것: [Unlicense](LICENSE) — 퍼블릭 도메인. 파생 스킬(grill-me): [mattpocock/skills](https://github.com/mattpocock/skills)를 개조한 것으로 MIT 라이선스 — [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) 참조.
+여기서 직접 작성한 스킬(handoff, model-sub-claude, model-sub-codex, wait-what)과 그 밖의 모든 것: [Unlicense](LICENSE) — 퍼블릭 도메인. 파생 스킬(grill-me): [mattpocock/skills](https://github.com/mattpocock/skills)를 개조한 것으로 MIT 라이선스 — [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) 참조.
