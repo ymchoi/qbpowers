@@ -1,26 +1,17 @@
 #!/usr/bin/env python3
-"""Launch one codex exec run detached, with a pid + exit-code sentinel.
+"""Start one codex exec attempt detached from its caller, with pid and exit-code sentinels.
 
-Usage:
-  python launch_codex.py <WORK> <WORKROOT> <MODEL> <EFFORT> [--schema] [--resume SESSION_ID]
+A fresh attempt feeds codex RUN_RULES + <WORK>/prompt.txt and writes input.txt,
+last.txt, stdout.log, stderr.log, pid and exit_code in <WORK>. The one resume
+attempt feeds prompt2.txt to `codex exec resume <SESSION_ID>` and writes the
+same files with a "2" suffix, leaving the first attempt's files as evidence.
 
-Fresh runs read <WORK>/prompt.txt and write last.txt / stdout.log /
-stderr.log / exit_code / pid. --resume marks the single recovery attempt and
-rejects an empty session id rather than silently downgrading to a fresh run:
-it reads prompt2.txt and writes the same set with a "2" suffix, leaving the
-first attempt's files untouched as evidence.
+The attempt is detached (start_new_session on POSIX, CREATE_NO_WINDOW on
+Windows) so it outlives whatever launched it, and exit_code, written by the
+wrapper once codex exits, is the only completion signal.
 
-The parent re-invokes this file with --wrapper as a background process
-(start_new_session on POSIX, CREATE_NO_WINDOW on Windows), records the
-wrapper pid, and returns immediately. The wrapper blocks on codex and writes
-the exit code when it finishes — that file appearing is the only completion
-signal poll_codex.py trusts.
-
-codex always receives -m/-c model_reasoning_effort explicitly (the mode
-resolves them; codex never falls back to its local defaults here) and
--c agents.enabled=false is fixed: bridges have no fan-out below the
-orchestrator. cwd is set to WORKROOT for both fresh and resume runs, which
-replaces -C and sidesteps `codex exec resume` not accepting it.
+wait_codex.py calls launch(); the process that starts re-enters this file as
+  python launch_codex.py --wrapper <WORK> <WORKROOT> <MODEL> <EFFORT> [--schema] [--resume SESSION_ID]
 """
 
 from __future__ import annotations
@@ -32,112 +23,105 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Never put the modification-gate marker in here: codex reads its mere presence
+# as authorization.
+RUN_RULES = "\n".join(
+    (
+        "[Run rules, set by the orchestrator that launched you. Where they conflict with AGENTS.md, these win.]",
+        "- You are a delegated worker, not an orchestrator: do the task below yourself, one step after another.",
+        "  Never spawn sub-agents or parallel workers (spawn_agent or any other delegation tool), and never start",
+        "  another codex process from the shell, even where an AGENTS.md file or the task asks for parallel work.",
+        "- Never kill a process you did not start; the python and shell processes waiting for you are expected.",
+        "- Search narrowly: give rg a target path and -j2, give find a -maxdepth, never search .temp_files/ or the",
+        "  whole repository, and open known paths directly instead of searching for them.",
+        "- Put scratch and output files under .temp_files/; AGENTS.md's modification gate does not apply there.",
+        "",
+        "[Task]",
+        "",
+    )
+)
 
-def build_codex_argv(args: argparse.Namespace, suffix: str, work: Path) -> list[str]:
+
+def codex_argv(codex: str, work: Path, model: str, effort: str, schema: bool, resume: str | None) -> list[str]:
+    argv = [codex, "exec", *(["resume", resume] if resume else []), "-", "-m", model]
+    # GPT-6 models keep their multi-agent instructions even with both features off,
+    # which is why RUN_RULES forbids sub-agents as well and wait_codex.py counts them.
+    argv += ["-c", f"model_reasoning_effort={effort}", "--disable", "multi_agent", "--disable", "multi_agent_v2"]
+    if schema:
+        argv += ["--output-schema", str(work / "schema.json")]
+    return [*argv, "-o", str(work / f"last{'2' if resume else ''}.txt")]
+
+
+def find_codex() -> str:
     codex = shutil.which("codex")
     if codex is None:
         raise FileNotFoundError("codex CLI not found on PATH")
-    argv = [codex, "exec"]
-    if args.resume:
-        argv += ["resume", args.resume]
-    argv += [
-        "-",
-        "-m",
-        args.model,
-        "-c",
-        f"model_reasoning_effort={args.effort}",
-        "-c",
-        "agents.enabled=false",
-    ]
-    if args.schema:
-        argv += ["--output-schema", str(work / "schema.json")]
-    argv += ["-o", str(work / f"last{suffix}.txt")]
-    return argv
+    return codex
+
+
+def launch(work: Path, workroot: Path, model: str, effort: str, *, schema: bool, resume: str | None = None) -> int:
+    """Start one attempt and return the wrapper pid; raises OSError when it cannot start."""
+    suffix = "2" if resume else ""
+    find_codex()  # fail here, where the caller can report it, rather than inside the detached wrapper
+    prompt = (work / f"prompt{suffix}.txt").read_bytes()
+    (work / f"input{suffix}.txt").write_bytes(prompt if resume else RUN_RULES.encode() + prompt)
+
+    wrapper = [sys.executable, str(Path(__file__).resolve()), "--wrapper", str(work), str(workroot), model, effort]
+    wrapper += [*(["--schema"] if schema else []), *(["--resume", resume] if resume else [])]
+    if os.name == "nt":
+        # Not DETACHED_PROCESS: without a console of its own to inherit, codex would
+        # allocate a fresh one, which Windows Terminal draws as a real window.
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) | getattr(
+            subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200
+        )
+        proc = subprocess.Popen(
+            wrapper,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=flags,
+        )
+    else:
+        proc = subprocess.Popen(
+            wrapper,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    (work / f"pid{suffix}").write_text(f"{proc.pid}\n", encoding="utf-8")
+    return proc.pid
 
 
 def run_wrapper(args: argparse.Namespace) -> int:
-    """Blocking half: run codex with redirections, then write the sentinel."""
+    """Blocking half: run codex with redirections, then write the exit-code sentinel."""
     work = Path(args.work)
     suffix = "2" if args.resume else ""
-    argv = build_codex_argv(args, suffix, work)
-    prompt = work / f"prompt{suffix}.txt"
     with (
-        open(prompt, "rb") as stdin,
+        open(work / f"input{suffix}.txt", "rb") as stdin,
         open(work / f"stdout{suffix}.log", "wb") as stdout,
         open(work / f"stderr{suffix}.log", "wb") as stderr,
     ):
         try:
-            rc = subprocess.run(
-                argv,
-                stdin=stdin,
-                stdout=stdout,
-                stderr=stderr,
-                cwd=args.workroot,
-                check=False,
-            ).returncode
+            argv = codex_argv(find_codex(), work, args.model, args.effort, args.schema, args.resume)
+            code = subprocess.run(argv, stdin=stdin, stdout=stdout, stderr=stderr, cwd=args.workroot).returncode
         except OSError as exc:
             stderr.write(f"launch_codex.py wrapper: {exc}\n".encode())
-            rc = 127
-    (work / f"exit_code{suffix}").write_text(f"{rc}\n", encoding="utf-8")
+            code = 127
+    (work / f"exit_code{suffix}").write_text(f"{code}\n", encoding="utf-8")
     return 0
 
 
-def spawn_detached(args: argparse.Namespace, raw_argv: list[str]) -> int:
-    work = Path(args.work)
-    suffix = "2" if args.resume else ""
-    prompt = work / f"prompt{suffix}.txt"
-    if not prompt.is_file():
-        print(f"launch_codex.py: missing {prompt}", file=sys.stderr)
-        return 2
-    if args.schema and not (work / "schema.json").is_file():
-        print(f"launch_codex.py: missing {work / 'schema.json'}", file=sys.stderr)
-        return 2
-    build_codex_argv(args, suffix, work)  # fail loud now if codex is absent
-
-    wrapper_argv = [sys.executable, str(Path(__file__).resolve()), "--wrapper", *raw_argv]
-    kwargs: dict[str, object] = {
-        "stdin": subprocess.DEVNULL,
-        "stdout": subprocess.DEVNULL,
-        "stderr": subprocess.DEVNULL,
-        "close_fds": True,
-    }
-    if os.name == "nt":
-        # Not DETACHED_PROCESS: that strips the wrapper of the windowless console the
-        # caller runs in, so the next console child allocates a fresh one and Windows
-        # Terminal draws it as a real window. CREATE_NO_WINDOW leaves a console every
-        # descendant inherits, codex included, and still outlives the Bash call.
-        no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
-        new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
-        kwargs["creationflags"] = no_window | new_group
-    else:
-        kwargs["start_new_session"] = True
-    proc = subprocess.Popen(wrapper_argv, **kwargs)  # type: ignore[call-overload]
-    (work / f"pid{suffix}").write_text(f"{proc.pid}\n", encoding="utf-8")
-    print(f"LAUNCHED attempt={'2' if args.resume else '1'} pid={proc.pid}")
-    return 0
-
-
-def parse_args(argv: list[str]) -> argparse.Namespace:
+def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--wrapper", action="store_true", help="internal: blocking child mode")
+    parser.add_argument("--wrapper", action="store_true", required=True)
     parser.add_argument("work")
     parser.add_argument("workroot")
     parser.add_argument("model")
     parser.add_argument("effort")
     parser.add_argument("--schema", action="store_true")
-    parser.add_argument("--resume", metavar="SESSION_ID", default=None)
-    return parser.parse_args(argv)
-
-
-def main(argv: list[str]) -> int:
-    args = parse_args(argv)
-    if args.resume is not None and not args.resume.strip():
-        print("launch_codex.py: --resume requires a non-empty session id", file=sys.stderr)
-        return 2
-    if args.wrapper:
-        return run_wrapper(args)
-    raw = [a for a in argv if a != "--wrapper"]
-    return spawn_detached(args, raw)
+    parser.add_argument("--resume", default=None)
+    return run_wrapper(parser.parse_args(argv))
 
 
 if __name__ == "__main__":

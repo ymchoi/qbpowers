@@ -1,21 +1,15 @@
 #!/usr/bin/env python3
-"""Create one bridge work directory and print its absolute path.
+"""Create codex work dirs under <root>/.temp_files/subcodex/ and print their absolute paths, one per line.
 
-Usage: python new_workdir.py [repo-root]
+Usage: python new_workdir.py [COUNT]
 
-The repo root comes from this file's own location (see _paths.py), so the
-bridge prompt that invokes this carries no host-specific path. The optional
-argument is honoured only for bridges still running the previous procedure,
-which passed one; rejecting it would kill those runs at step 1.
-
-Directories collect under <root>/.temp_files/subcodex/ so codex bridge
-residue stays in one place the user can sweep in bulk, and the name embeds
-a timestamp so age is visible at a glance. The random mkdtemp suffix keeps
-parallel bridges collision-free.
+Names embed a timestamp so age is visible at a glance; the random mkdtemp
+suffix keeps parallel runs collision-free.
 """
 
 from __future__ import annotations
 
+import argparse
 import sys
 import tempfile
 from datetime import datetime
@@ -25,17 +19,18 @@ from _paths import repo_root
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) > 2:
-        print("usage: new_workdir.py [repo-root]", file=sys.stderr)
-        return 2
-    root = Path(argv[1]) if len(argv) == 2 and Path(argv[1]).is_dir() else repo_root()
-    parent = root / ".temp_files" / "subcodex"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("count", nargs="?", type=int, default=1)
+    count = parser.parse_args(argv).count
+    if count < 1:
+        parser.error("COUNT must be at least 1")
+    parent = repo_root() / ".temp_files" / "subcodex"
     parent.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    work = tempfile.mkdtemp(prefix=f"bridge_{stamp}_", dir=parent)
-    print(Path(work).resolve())
+    for _ in range(count):
+        print(Path(tempfile.mkdtemp(prefix=f"run_{stamp}_", dir=parent)).resolve())
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+    raise SystemExit(main(sys.argv[1:]))

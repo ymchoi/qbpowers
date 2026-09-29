@@ -13,7 +13,6 @@
 ## Subagents
 - Inject the temporary-folder (.temp_files) rule into every subagent every time.
 - If more than three direct `mcp__context7__` calls are needed in one turn, delegate to new subagents in batches of three calls so context7 can be used without a call-count limit.
-- Even without explicit instruction from the user, make full and active use of parallel subagents for any work where subagents can help. Even when parallelism isn't needed, the technique of using just one subagent to save the main agent's context size is also very useful.
 
 ## Research Evidence and External Documentation
 - Look for evidence in local files first. Prioritize repository-internal code, configuration, and project documentation.

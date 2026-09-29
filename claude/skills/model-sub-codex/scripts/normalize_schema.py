@@ -1,27 +1,24 @@
-#!/usr/bin/env python3
 """Rewrite a JSON Schema in place to OpenAI strict structured-output form.
 
-Usage: python normalize_schema.py <schema.json>
-
 codex forwards --output-schema verbatim to the API as a strict:true response
-format, which rejects anything looser with HTTP 400 invalid_json_schema
-before any work runs. This normalizer mechanically enforces the two rules a
-Claude-side schema most often misses, preserving semantics:
+format, which rejects anything looser with HTTP 400 invalid_json_schema before
+any work runs. This enforces the two rules hand-written schemas most often
+miss, preserving semantics:
 
 - every object level gets "additionalProperties": false
 - every property key joins "required"; a formerly optional field becomes
   required-but-nullable instead (null-unioned type / anyOf null branch; enum
   member lists are null-extended as well)
 
-It is idempotent. It deliberately does NOT touch what it cannot fix
-faithfully (a non-object root, composition keywords like allOf/if/then, or a
+It is idempotent. It deliberately does NOT touch what it cannot fix faithfully
+(a non-object root, composition keywords like allOf/if/then, or a
 schema-valued additionalProperties); those still fail loudly at the API.
 """
 
 from __future__ import annotations
 
 import json
-import sys
+from pathlib import Path
 from typing import Any
 
 
@@ -76,19 +73,8 @@ def walk(s: Any) -> None:
             walk(v)
 
 
-def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print("usage: normalize_schema.py <schema.json>", file=sys.stderr)
-        return 2
-    path = argv[1]
-    with open(path, encoding="utf-8") as fh:
-        d = json.load(fh)
-    walk(d)
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(d, fh, ensure_ascii=False)
-    print(f"strict-normalized: {path}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+def normalize_file(path: Path) -> None:
+    """Raises OSError or ValueError (json.JSONDecodeError) when the file cannot be normalized."""
+    schema = json.loads(path.read_text(encoding="utf-8"))
+    walk(schema)
+    path.write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")

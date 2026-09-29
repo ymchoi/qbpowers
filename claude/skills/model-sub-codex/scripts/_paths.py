@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
 """Locate the repo root from this package's own position on disk.
 
-Bridge prompts must stay copy-verbatim across machines and checkouts, so they
-carry no host-specific path. The scripts live at a fixed depth under the repo
-(<root>/.claude/skills/model-sub-codex/scripts/), which makes the root
-derivable from __file__ alone — no argument, no cwd assumption.
+The scripts live at <root>/.claude/skills/model-sub-codex/scripts/, so the root
+is derivable from __file__ alone: no argument and no cwd assumption.
 """
 
 from __future__ import annotations
