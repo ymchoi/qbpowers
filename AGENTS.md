@@ -12,11 +12,10 @@
 
 ## Subagents
 - Inject the temporary-folder (.temp_files) rule into every subagent every time.
-- If more than three direct `mcp__context7__` calls are needed in one turn, delegate to new subagents in batches of three calls so context7 can be used without a call-count limit.
 
 ## Research Evidence and External Documentation
 - Look for evidence in local files first. Prioritize repository-internal code, configuration, and project documentation.
-- If you cannot find evidence in local files, obtain the necessary factual evidence through `mcp__context7__` or sufficient web search, as appropriate.
+- If you cannot find evidence in local files, obtain the necessary factual evidence through sufficient web search.
 - If web access is blocked by a site's bot protection, try `curl -L -o`; if curl is blocked too, use `utils/fetch_web/fetch_site.py`. Even without bot blocking, use `fetch_site.py` for pages where the built-in web tools or `curl` cannot collect the information properly. `fetch_site.py` cannot run in parallel and must be used strictly serially; when processing multiple pages, serialize by running a single dedicated subagent that alone makes the `fetch_site.py` calls. Save the outputs of `curl` and `fetch_site.py` under `.temp_files`.
 - Check the date and version for time-sensitive or version-dependent information.
 
