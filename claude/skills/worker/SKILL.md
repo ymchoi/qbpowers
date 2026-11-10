@@ -1,6 +1,6 @@
 ---
 name: worker
-description: Choose the workers this session delegates to. Usage /worker [claude | claude-all | codex [fast|ultrafast] | codex-all [fast|ultrafast] | none], default codex.
+description: Choose the workers this session delegates to. Usage /worker [claude-light | claude | hybrid [fast|ultrafast] | codex-light [fast|ultrafast] | codex [fast|ultrafast] | none], default hybrid.
 disable-model-invocation: true
 ---
 
@@ -8,27 +8,26 @@ disable-model-invocation: true
 
 Until the session ends, delegate work by the column this invocation selects. The latest `/worker` wins, and a routing table the user gives in the session replaces this one until the next `/worker`.
 
-- `/worker` or `/worker codex`: the `codex` column.
-- `/worker codex-all`: the `codex-all` column.
+- `/worker` or `/worker hybrid`: the `hybrid` column.
+- `/worker claude-light`: the `claude-light` column.
 - `/worker claude`: the `claude` column.
-- `/worker claude-all`: the `claude-all` column.
+- `/worker codex-light`: the `codex-light` column.
+- `/worker codex`: the `codex` column.
 - `/worker none`: start no workers, Claude or GPT, and do all the work yourself. Workers already running finish; take their results.
 
-`fast` or `ultrafast` after `codex` or `codex-all` puts that column's GPT workers on service tier `priority` or `ultrafast`. Otherwise, and in both claude columns, GPT workers run at standard speed.
+`fast` or `ultrafast` after `hybrid`, `codex-light` or `codex` puts that column's GPT workers on service tier `priority` or `ultrafast`. Otherwise, and in both claude columns, GPT workers run at standard speed.
 
-| Work | claude | claude-all | codex | codex-all |
-|---|---|---|---|---|
-| Hard: a bug of unknown cause, a design or architecture decision, a change across several modules, a change that is hard to undo (security, auth, payments, data migration) | opus max | opus max | astra max | astra max |
-| Writing or changing code, tests or documents | opus xhigh | opus xhigh | astra xhigh | astra xhigh |
-| Deep review of an important change | astra xhigh | opus xhigh | opus xhigh | astra xhigh |
-| Web search; research in external documents or open source | opus high | opus high | sol max | sol max |
-| General: the scope is set and judgment stays inside it. Reproduction, simple diagnosis, routine review and checks | opus high | opus high | sol max | sol max |
-| Simple: nothing to interpret. Finding, reading, listing; running tests and reporting the result; a spelled-out edit in one or two files; mechanical repetition | opus medium | opus medium | sol xhigh | sol xhigh |
-| Computer Use, one such worker at a time | sol max | sol max | sol max | sol max |
+| Work | claude-light | claude | hybrid | codex-light | codex |
+|---|---|---|---|---|---|
+| Hard: a bug of unknown cause, a design or architecture decision, a change across several modules, a change that is hard to undo (security, auth, payments, data migration) | opus xhigh | opus max | opus max | astra max | astra max |
+| Writing or changing code, tests or documents | opus high | opus xhigh | astra max | sol max | astra max |
+| Deep review of an important change | opus high | opus xhigh | opus xhigh | sol max | astra max |
+| Web search; research in external documents or open source | opus medium | opus high | sol max | sol max | sol max |
+| General: the scope is set and judgment stays inside it. Reproduction, simple diagnosis, routine review and checks | opus medium | opus high | sol max | sol max | sol max |
+| Simple: nothing to interpret. Finding, reading, listing; running tests and reporting the result; a spelled-out edit in one or two files; mechanical repetition | opus medium | opus medium | sol max | sol max | sol max |
+| Computer Use, one such worker at a time | sol max | sol max | sol max | sol max | sol max |
 
-`opus` is a Claude subagent; `astra` (`gpt-6-astra`) and `sol` (`gpt-6.1-sol`) run through codex.
-
-`claude` and `codex` give the deep review to the other family than the author's. `claude-all` and `codex-all` keep it in the same family, so every row stays with one family. Computer Use is the exception in every column: it always runs through codex.
+`opus` is a Claude subagent; `astra` (`gpt-6-astra`) and `sol` (`gpt-6.1-sol`) run through codex. Computer Use is the exception in every column: it always runs through codex.
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
 

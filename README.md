@@ -54,27 +54,28 @@ Use `/wait-what` when an answer didn't land. Claude explains its previous answer
 Until the session ends, `/worker` sets who does the work Claude delegates. The latest `/worker` wins. Claude workers are Opus subagents. GPT workers are `gpt-6-astra` and `gpt-6.1-sol`, run through the codex CLI.
 
 ```
-/worker              # same as /worker codex
-/worker codex
-/worker codex-all
+/worker              # same as /worker hybrid
+/worker claude-light
 /worker claude
-/worker claude-all
+/worker hybrid
+/worker codex-light
+/worker codex
 /worker none
 ```
 
-Add `fast` or `ultrafast` after `codex` or `codex-all`, as in `/worker codex fast`, to put the GPT workers on service tier `priority` or `ultrafast`. Without it, and always under `claude` and `claude-all`, they run at standard speed.
+Add `fast` or `ultrafast` after `hybrid`, `codex-light` or `codex`, as in `/worker hybrid fast`, to put the GPT workers on service tier `priority` or `ultrafast`. Without it, and always under `claude-light` and `claude`, they run at standard speed.
 
-Each form picks a column of the table below. `claude` and `codex` give the deep review to the model family that didn't write the change, and `claude-all` and `codex-all` keep it in the same family. Computer Use runs through codex in every column. `none` starts no workers, so Claude does all the work itself.
+Each form picks a column of the table below. `claude-light` and `claude` use Claude workers, `codex-light` and `codex` use GPT workers, and `hybrid` mixes the two. The `-light` columns use lower efforts or models. Computer Use runs through codex in every column. `none` starts no workers, so Claude does all the work itself.
 
-| Work | claude | claude-all | codex | codex-all |
-|---|---|---|---|---|
-| Hard problems | opus max | opus max | astra max | astra max |
-| Writing code, tests or documents | opus xhigh | opus xhigh | astra xhigh | astra xhigh |
-| Deep review | astra xhigh | opus xhigh | opus xhigh | astra xhigh |
-| Web search and research | opus high | opus high | sol max | sol max |
-| General work | opus high | opus high | sol max | sol max |
-| Simple work | opus medium | opus medium | sol xhigh | sol xhigh |
-| Computer Use | sol max | sol max | sol max | sol max |
+| Work | claude-light | claude | hybrid | codex-light | codex |
+|---|---|---|---|---|---|
+| Hard problems | opus xhigh | opus max | opus max | astra max | astra max |
+| Writing code, tests or documents | opus high | opus xhigh | astra max | sol max | astra max |
+| Deep review | opus high | opus xhigh | opus xhigh | sol max | astra max |
+| Web search and research | opus medium | opus high | sol max | sol max | sol max |
+| General work | opus medium | opus high | sol max | sol max | sol max |
+| Simple work | opus medium | opus medium | sol max | sol max | sol max |
+| Computer Use | sol max | sol max | sol max | sol max | sol max |
 
 Each cell gives the model, then the effort. `opus` is a Claude subagent; `astra` (`gpt-6-astra`) and `sol` (`gpt-6.1-sol`) run through codex. [SKILL.md](claude/skills/worker/SKILL.md) spells out what each row covers.
 
@@ -168,27 +169,28 @@ worker는 준비할 것이 더 있다. 아래 worker 설명 끝의 [준비](#준
 `/worker`는 세션이 끝날 때까지 Claude가 넘기는 일을 누가 맡을지 정한다. 마지막으로 입력한 `/worker`가 적용된다. Claude 워커는 Opus subagent이고, GPT 워커는 codex CLI로 돌리는 `gpt-6-astra`와 `gpt-6.1-sol`이다.
 
 ```
-/worker              # /worker codex와 같다
-/worker codex
-/worker codex-all
+/worker              # /worker hybrid와 같다
+/worker claude-light
 /worker claude
-/worker claude-all
+/worker hybrid
+/worker codex-light
+/worker codex
 /worker none
 ```
 
-`codex`나 `codex-all` 뒤에 `fast`나 `ultrafast`를 붙이면 GPT 워커가 서비스 티어 `priority`나 `ultrafast`로 돈다. 예를 들면 `/worker codex fast`다. 붙이지 않았을 때와 `claude`, `claude-all`에서는 표준 속도로 돈다.
+`hybrid`, `codex-light`, `codex` 뒤에 `fast`나 `ultrafast`를 붙이면 GPT 워커가 서비스 티어 `priority`나 `ultrafast`로 돈다. 예를 들면 `/worker hybrid fast`다. 붙이지 않았을 때와 `claude-light`, `claude`에서는 표준 속도로 돈다.
 
-명령마다 아래 표의 열 하나를 고른다. `claude`와 `codex`는 깊은 리뷰를 그 변경을 만든 쪽과 다른 모델 계열에 맡기고, `claude-all`과 `codex-all`은 같은 계열에 맡긴다. Computer Use는 어느 열에서든 codex로 돈다. `none`은 워커를 띄우지 않으므로 Claude가 모든 일을 직접 한다.
+명령마다 아래 표의 열 하나를 고른다. `claude-light`와 `claude`는 Claude 워커를, `codex-light`와 `codex`는 GPT 워커를 쓰고, `hybrid`는 둘을 섞는다. `-light` 쪽은 effort나 모델을 낮춰 쓴다. Computer Use는 어느 열에서든 codex로 돈다. `none`은 워커를 띄우지 않으므로 Claude가 모든 일을 직접 한다.
 
-| 일 | claude | claude-all | codex | codex-all |
-|---|---|---|---|---|
-| 어려운 문제 | opus max | opus max | astra max | astra max |
-| 코드, 테스트, 문서 작성 | opus xhigh | opus xhigh | astra xhigh | astra xhigh |
-| 깊은 리뷰 | astra xhigh | opus xhigh | opus xhigh | astra xhigh |
-| 웹 검색과 조사 | opus high | opus high | sol max | sol max |
-| 일반 작업 | opus high | opus high | sol max | sol max |
-| 단순 작업 | opus medium | opus medium | sol xhigh | sol xhigh |
-| Computer Use | sol max | sol max | sol max | sol max |
+| 일 | claude-light | claude | hybrid | codex-light | codex |
+|---|---|---|---|---|---|
+| 어려운 문제 | opus xhigh | opus max | opus max | astra max | astra max |
+| 코드, 테스트, 문서 작성 | opus high | opus xhigh | astra max | sol max | astra max |
+| 깊은 리뷰 | opus high | opus xhigh | opus xhigh | sol max | astra max |
+| 웹 검색과 조사 | opus medium | opus high | sol max | sol max | sol max |
+| 일반 작업 | opus medium | opus high | sol max | sol max | sol max |
+| 단순 작업 | opus medium | opus medium | sol max | sol max | sol max |
+| Computer Use | sol max | sol max | sol max | sol max | sol max |
 
 칸마다 앞은 모델, 뒤는 effort다. `opus`는 Claude subagent이고, `astra`(`gpt-6-astra`)와 `sol`(`gpt-6.1-sol`)은 codex로 돈다. 행마다 어떤 일이 들어가는지는 [SKILL.md](claude/skills/worker/SKILL.md)에 자세히 있다.
 
