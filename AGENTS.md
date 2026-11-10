@@ -1,52 +1,47 @@
-## Python Execution Rules
-- Use Python 3.14.
-- Do not call the OS-global `python3` / `pip` directly. Run everything with the `python` from the relevant `.venv` (or with `python -m pip`).
+## Python Environment
+- Run all Python, including one-off scripts, with Python 3.14 from the `.venv` at the repository root. Never call the OS-global `python3` or `pip`; install packages with `python -m pip`.
+- Manage dependencies in the root `pyproject.toml`, never with `requirements.txt`.
 
-## File Modification Permissions and Temporary Files
-- Non-modifying actions such as reading/analyzing local files, web browsing/search, and discussion are always automatically allowed.
-- Every user prompt starts in a `file modification prohibited` state by default.
-- Only begin file addition, modification, or deletion work when the prompt contains the exact phrase `<GATE_MARKER>`.
-- The following work is allowed without `<GATE_MARKER>`:
-  - Adding, modifying, or deleting files under `.temp_files/`.
-- Experiment files, temporary files, and intermediate files that are safe to delete and whose paths are not explicitly specified must be stored under `{project root}/.temp_files/`. Create a subdirectory named with `YYYYMMDD_HHMMSS` plus a description of the purpose, and save the files there. Example: `.temp_files/20260327_232323_translate_test/test_data.json`
+## Files and Processes
+- Put temporary, experimental and intermediate files whose location the user did not specify in `.temp_files/YYYYMMDD_HHMMSS_<purpose>/` (for example, `.temp_files/20260327_232323_translate_test/`).
+- Edit files tracked by git only with the file-editing tool (Claude Code: `Edit`/`Write`; Codex: `apply_patch`), not with `sed -i`, scripted replacement or shell redirection. Output from formatters and code generators is exempt.
+- Before deleting files or stopping processes or databases, check that they belong to the current work. Do not judge by names, prefixes or old PIDs alone; if another session or the user might be using them, ask first.
 
-## Subagents
-- Inject the temporary-folder (.temp_files) rule into every subagent every time.
+## Git
+- Commit only when the user asks.
 
-## Research Evidence and External Documentation
-- Look for evidence in local files first. Prioritize repository-internal code, configuration, and project documentation.
-- If you cannot find evidence in local files, obtain the necessary factual evidence through sufficient web search.
-- If web access is blocked by a site's bot protection, try `curl -L -o`; if curl is blocked too, use `utils/fetch_web/fetch_site.py`. Even without bot blocking, use `fetch_site.py` for pages where the built-in web tools or `curl` cannot collect the information properly. `fetch_site.py` cannot run in parallel and must be used strictly serially; when processing multiple pages, serialize by running a single dedicated subagent that alone makes the `fetch_site.py` calls. Save the outputs of `curl` and `fetch_site.py` under `.temp_files`.
-- Check the date and version for time-sensitive or version-dependent information.
+## Interpreting and Answering User Requests
+- If a request seems mistaken or a simpler approach exists, say so briefly, with the reason.
+- Before answering about a symptom the user describes, check the relevant facts with tools.
 
-## Prompt Interpretation and User Confirmation
-- Do not read only the surface wording of the user's message. Analyze the context in which the prompt was sent, its position in the conversation flow, and what the user ultimately wants to know. If the interpretation of the user's prompt is uncertain, ask a specific question.
-- When you receive a prompt, first classify the parts you may decide freely and the parts that require the user's confirmation.
-- If uncertainty remains after verification, explicitly state `unverified` or `speculation`. If there is no evidence, answer `I don't know` or `needs verification`.
-- For symptoms described by the user, answer only after directly checking the related facts with tools.
+## Code Changes
+- If a design defect within the task's scope would force a workaround, fix the defect instead, sized to its real impact.
+- Keep designs as simple as the requirement allows; do not write 200 lines where 50 will do.
+- Do not add handling for cases that are very unlikely to happen, or just-in-case options, abstractions, fallbacks, exception handling or validation: over-engineering is itself a source of bugs. Validation at boundaries (user input, external APIs, file and queue messages) and handling of external failures that really occur are still required.
+- Do not add production code that behaves differently under test (for example, checks of a test environment variable, or bypasses taken only in tests). If code is hard to test, inject dependencies such as clocks, clients and paths through parameters or a `Protocol`, defaulting to production behavior.
+- Name tests and identifiers by behavior, not by review rounds or task IDs.
+- Write comments, in English, only for reasons, constraints or caveats the code cannot show. Do not restate the code or record change history or task IDs.
 
-## Tasks, Planning, and Verification
-- Transform tasks into verifiable goals:
-  - `Add validation` → `Write tests for invalid inputs, then make them pass`
-  - `Fix the bug` → `Write a test that reproduces it, then make it pass`
-  - `Refactor X` → `Ensure tests pass before and after`
-- If the same or a similar attempt fails multiple times, do not keep trying in the same direction.
-- For features that can be tested headlessly (e.g., with Playwright), run tests in headless mode without opening physical OS popup windows. Playwright headless testing is especially useful.
+## Verification and Reporting
+- After edits, run the formatter and linter configured for each language you changed (Python: Ruff, mypy and the relevant pytest tests). If a check fails, fix the root cause instead of loosening or ignoring the check. If a check cannot run, report exactly what blocked it.
+- For a bug fix, first add a test that reproduces the bug, where practical.
+- Run tests headless when possible (for example, Playwright headless). Open OS windows only when the user allows it.
+- Report each check as passed, partially checked, failed or not run. Do not present a test on mock data as a real-environment test.
+- Read a worker's report that checks passed as covering only the checks that worker ran, and rerun the checks after merging the work.
 
-## Code Change Principles
-- Before modifying or deleting code, check the import relationships, configuration, tests, and related documentation that may affect the result. Do not judge by the beginning of a file only; read list-like information to the end. If you cannot check everything, state the checked and unchecked ranges.
-- If a senior engineer would call it `over-engineered`, simplify it. For example, if something written in 200 lines could be done in 50, rewrite it (the numbers are illustrative).
-- State assumptions explicitly. If uncertain or if multiple interpretations are possible, do not silently choose one; ask a question or present choices. If there is a simpler approach, say so. When justified, push back on the user's decision.
-- When modifying or adding code, also clean up unnecessary complexity found in the same file or directly related code.
-- Write code comments in this project in English.
+## Python Types
+- Use mypy in strict mode as the only type checker, and do not loosen its settings. Changed code must pass mypy; new or changed functions need explicit parameter and return types.
+- Prefer precise types (domain types, Pydantic models, `TypedDict`, dataclasses, generics, `Protocol`) over bare `dict`, `dict[str, Any]` or `Any`. Keep unavoidable `Any`, `cast()`, `# type: ignore` or `# noqa` narrow, with a specific code and a reason.
+- Use Pydantic at external or untrusted boundaries: API payloads, LLM outputs, tool arguments, config, webhooks, database DTOs, and queue or file messages.
+- Let local variable types be inferred. Annotate a local only when it clarifies intent or mypy needs it: empty collections, `None` initialization, `Any` quarantine, complex unions, public attributes or ambiguous inference.
+- Use Ruff for Python formatting, linting and import sorting; do not add other tools for these unless committed configuration already requires them.
 
-## Python Type, Lint, and Verification Rules
-- Use mypy as the repository's authoritative Python type checker. Do not add another type checker unless the project explicitly adopts it.
-- Use mypy strict mode and do not weaken type settings.
-- All new or modified functions and methods must have explicit parameter and return types, and changed Python code must pass the configured mypy check without weakening type settings.
-- Prefer precise domain types, Pydantic models, `TypedDict`, dataclasses, generics, and `Protocol` over bare `dict`, `dict[str, Any]`, or broad `Any`.
-- Use Pydantic at external or untrusted boundaries: API payloads, LLM outputs, tool arguments, config, webhooks, database DTOs, and queued/file messages.
-- Prefer inference for obvious local variables. Annotate locals only when it clarifies intent or helps mypy: empty collections, `None` initialization, `Any` quarantine, complex unions, public attributes, or ambiguous inference.
-- Avoid unnecessary `Any`, `cast()`, `# type: ignore`, and `# noqa`. If unavoidable, keep the escape hatch local, use a specific code, and explain why.
-- Ruff owns formatting, linting, and import sorting. Do not introduce other Python formatters, linters, or import sorters unless existing committed configuration requires them.
-- After Python edits, run Ruff, mypy, and relevant pytest tests. Fix root causes instead of weakening checks; report exact blockers when verification cannot be run.
+## Research and External Sources
+- Look for evidence in the repository first: code, configuration and project documentation. Then search the web.
+- If the built-in web tools cannot get a page (bot block or missing content), download it with `curl -L -o` and save the result under `.temp_files/`.
+- Check dates and versions for time-sensitive or version-dependent facts.
+
+## Documentation
+- Keep in documents only what agents need to consult or work from; delete the rest. Accumulate journal- or log-style records only when strictly necessary; otherwise delete or tightly compress them.
+- Status documents and every `AGENTS.md`/`CLAUDE.md` (root and subprojects) hold only the current state and stable rules, never run logs or incident-specific rules.
+- When a change alters what a source-of-truth document describes, update that document in the same change. Link to a rule's single source instead of copying it. Put conclusions in the relevant document, not only in `.temp_files/`.

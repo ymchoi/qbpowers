@@ -15,7 +15,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from _paths import repo_root
+ROOT = Path(__file__).resolve().parents[4]
 
 
 def main(argv: list[str]) -> int:
@@ -24,7 +24,7 @@ def main(argv: list[str]) -> int:
     count = parser.parse_args(argv).count
     if count < 1:
         parser.error("COUNT must be at least 1")
-    parent = repo_root() / ".temp_files" / "subcodex"
+    parent = ROOT / ".temp_files" / "subcodex"
     parent.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     for _ in range(count):

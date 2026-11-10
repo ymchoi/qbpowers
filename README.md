@@ -1,229 +1,227 @@
 # qbpowers
 
-Agent skills for Claude Code and the OpenAI Codex CLI — a public snapshot of skills in daily use in a personal project.
+These are Claude Code skills and agent files I use every day in a private project. If you use Claude Code, you can copy any of them into your own project.
 
-**English** · [한국어](#한국어)
+English · [한국어](#한국어)
 
-| Skill | Claude | Codex | What it does |
-|---|:---:|:---:|---|
-| [model-sub-codex](#model-sub-codex) | ✓ | — | Hand subagent work to the codex CLI, run by the main agent. |
-| [model-sub-claude](#model-sub-claude) | ✓ | — | Pin the session's default subagent model + effort. |
-| [grill-me](#grill-me) | ✓ | ✓ | Relentless questioning that aligns the agent's understanding with yours. |
-| [handoff](#handoff) | ✓ | ✓ | Session handover document a context-blind agent can resume from. |
-| [wait-what](#wait-what) | ✓ | — | Re-explain the previous answer in plainer language. |
+## What's here
 
-All skills are manual-only: they run when you type the command.
+| Skill | What it does |
+|---|---|
+| [grill-me](#grill-me) | Asks you one question at a time until it understands what you want to do. |
+| [wait-what](#wait-what) | Explains the previous answer again, more plainly, in Korean. |
+| [worker](#worker) | Chooses who does the work Claude delegates: Claude subagents, GPT models through codex, a mix of the two, or no one. |
 
-## model-sub-codex
+The skills are in `claude/skills/`. The repo also has these files:
 
-*Claude Code only. Requires an installed, authenticated `codex` CLI and a Python 3.14+ `.venv` at the project root.*
+- `claude/agents/worker-effort-*.md`: the agent files worker needs for its Claude workers.
+- `claude/agents/general-purpose.md`: an optional replacement for Claude Code's built-in general-purpose agent.
+- `AGENTS.md` and `CLAUDE.md`: my own project rules, shared as a reference.
 
-While the mode is on, work Claude would give a subagent goes to codex instead. Claude runs `codex exec` itself through the bundled scripts and reads each run's output file — no relay subagent sits in between. Model: `astra` | `sol` | `luna` (GPT-6, default `luna`); effort: `low` | `medium` | `high` | `xhigh` | `max` (default `max`).
+## Quick start
 
-**Design intent** — combine only the strengths of both models.
+Both grill-me and wait-what need only a copy. Clone the repo and copy the skill into your project's `.claude/skills/`:
 
-- **Orchestrator (Claude)**: 1M context, high reasoning quality
-- **Worker (codex)**: low cost per task, fast turnaround
-
-Each side covers the other's weak spot, so you get reasoning quality, cost savings, and throughput together.
-
-- One background waiter drives a whole batch: at most 32 `codex exec` processes per machine, one resume after an unexplained failure, silent runs reported rather than killed, and a pause at the usage limit that the same command resumes after the reset.
-- codex works alone: every prompt opens with fixed run rules against sub-agents and nested codex runs, and the waiter reports any run that spawns one anyway.
-
-```
-/model-sub-codex              # gpt-6-luna + max
-/model-sub-codex sol          # gpt-6-sol + max
-/model-sub-codex astra high   # gpt-6-astra + high
+```sh
+git clone https://github.com/ymchoi/qbpowers.git
+cd qbpowers
+mkdir -p /path/to/project/.claude/skills
+cp -R claude/skills/grill-me /path/to/project/.claude/skills/
 ```
 
-## model-sub-claude
+If Claude Code was running when you created `.claude/skills/`, restart it. Then type `/grill-me` followed by what you want to do. Each skill runs only when you type its command.
 
-*Claude Code only. Needs the `sub-effort-*` agent definitions (see [Installation](#installation)).*
-
-Pins the default model and reasoning effort for every subagent Claude Code spawns for the rest of the session. Model: `fable` | `opus` | `sonnet` | `haiku` (default `opus`); effort: `low` | `medium` | `high` | `xhigh` | `max` (default `max`).
-
-Subagents run as the `sub-effort-<effort>` agent type — the Agent tool has no effort parameter, so the definition carries it — and that type cannot spawn subagents of its own. With ultracode on, workflow agents use the same types.
-
-```
-/model-sub-claude               # opus + max (defaults)
-/model-sub-claude sonnet        # sonnet + max (effort omitted = max)
-/model-sub-claude sonnet high   # light, fast parallel fan-out
-```
-
-Forms a toggle group with `/model-sub-codex` — the most recent invocation wins.
+The worker skill needs more. Its [Setup](#setup) is at the end of the worker section.
 
 ## grill-me
 
-The agent asks one pointed question per turn to **align its understanding of what you want to do with your own.** Plans, requirements, half-formed ideas — the target does not matter. Each question comes with a recommended answer, so you just confirm or push back, and anything the code can answer it looks up itself.
-
-Simple but powerful — a few rounds of questions converge the agent's direction sharply onto your intent.
+Type `/grill-me` followed by what you want to do. Claude then interviews you, one question at a time, until it understands the task the way you do. Each question comes with a recommended answer and a short reason. Claude looks things up in the code and on the web itself and asks you only what it can't find out.
 
 ```
-# describe what you want first, then invoke:
-I want to record user activity logs and be able to analyse them later.
-/grill-me
+/grill-me I want to log what users do in the app so I can analyze it later.
 ```
-
-## handoff
-
-Writes a handover document for the current session so a fresh agent with zero chat history can continue the work. The document goes to a single Markdown file under `.temp_files/` — you get back the path, not a wall of text in chat — and the skill critiques its own output as if it were the fresh agent, patching gaps before reporting.
-
-```
-/handoff
-```
-
-→ `.temp_files/20260705_142310_handoff_auth_refactor/handoff.md` + "self-check passed".
-
-```
-/handoff as a checklist of what's left, so the next session can start implementing right away
-```
-
-Free-text instructions steer length, language, format, and focus. (Codex trigger: `$handoff`.)
 
 ## wait-what
 
-*Claude Code only. Answers in Korean.*
-
-For when an answer did not land. It re-pitches the previous response with a little context restored, rewritten under the clarity principles of ASD-STE100 Simplified Technical English — one idea per sentence, short sentences, active voice, the same word for the same thing.
+Use `/wait-what` when an answer didn't land. Claude explains its previous answer again in Korean, in plainer words and with a little more context. For another language, edit the one-line body and the `description` in its `SKILL.md`.
 
 ```
 /wait-what
 ```
 
-ASD-STE100 is a controlled English written for aircraft maintenance manuals. Only its clarity principles are borrowed, not its approved word list; the reply itself is Korean. Edit the skill's one line if you want another language.
+## worker
 
-## Installation
+Until the session ends, `/worker` sets who does the work Claude delegates. The latest `/worker` wins. Claude workers are Opus subagents. GPT workers are `gpt-6-astra` and `gpt-6.1-sol`, run through the codex CLI.
 
-- **Claude Code**: copy a directory under `claude/skills/` into your project's `.claude/skills/`. For `model-sub-claude`, also copy `claude/agents/sub-effort-*.md` into `.claude/agents/` (restart Claude Code if that directory is new).
-- **Codex CLI**: copy a directory under `codex/skills/` into your project's `.codex/skills/`.
+```
+/worker              # same as /worker codex
+/worker codex
+/worker codex-all
+/worker claude
+/worker claude-all
+/worker none
+```
 
-## Repo extras
+Add `fast` or `ultrafast` after `codex` or `codex-all`, as in `/worker codex fast`, to put the GPT workers on service tier `priority` or `ultrafast`. Without it, and always under `claude` and `claude-all`, they run at standard speed.
 
-- Root `AGENTS.md` / `CLAUDE.md` — the live agent instruction files these skills grew out of; project-specific sections removed, usable as a template.
-- `utils/fetch_web/` — Patchright-based fallback page fetcher used by the research rules in `AGENTS.md`. Requires `patchright==1.59.1` and Chrome (`pip install patchright==1.59.1 && patchright install chrome`); always runs headed — Patchright loses its bot-detection evasion headless.
+Each form picks a column of the table below. `claude` and `codex` give the deep review to the model family that didn't write the change, and `claude-all` and `codex-all` keep it in the same family. Computer Use runs through codex in every column. `none` starts no workers, so Claude does all the work itself.
 
-## Portability
+| Work | claude | claude-all | codex | codex-all |
+|---|---|---|---|---|
+| Hard problems | opus max | opus max | astra max | astra max |
+| Writing code, tests or documents | opus xhigh | opus xhigh | astra xhigh | astra xhigh |
+| Deep review | astra xhigh | opus xhigh | opus xhigh | astra xhigh |
+| Web search and research | opus high | opus high | sol max | sol max |
+| General work | opus high | opus high | sol max | sol max |
+| Simple work | opus medium | opus medium | sol xhigh | sol xhigh |
+| Computer Use | sol max | sol max | sol max | sol max |
 
-The skills assume a few conventions from their home project — substitute your own:
+Each cell gives the model, then the effort. `opus` is a Claude subagent; `astra` (`gpt-6-astra`) and `sol` (`gpt-6.1-sol`) run through codex. [SKILL.md](claude/skills/worker/SKILL.md) spells out what each row covers.
 
-- `.temp_files/` — a scratch-directory convention at the project root (used by handoff and model-sub-codex).
-- `<GATE_MARKER>` — placeholder in `model-sub-codex` and `AGENTS.md` for your file-modification approval phrase (drop that rule if you don't use such a gate).
+Claude runs workers in parallel when it can. If a worker fails, Claude reports it instead of quietly doing the work some other way.
+
+### Setup
+
+From your qbpowers clone, copy worker and its agents into the project, then create the venv:
+
+```sh
+mkdir -p /path/to/project/.claude/skills /path/to/project/.claude/agents
+cp -R claude/skills/worker /path/to/project/.claude/skills/
+cp claude/agents/worker-effort-*.md /path/to/project/.claude/agents/
+cd /path/to/project && python3.14 -m venv .venv  # skip if the project already has a Python 3.14 .venv
+```
+
+- The codex CLI must be on your PATH, logged in and allowed to write files. `codex exec` is read-only by default, so put `sandbox_mode = "workspace-write"` in `~/.codex/config.toml`. It also refuses to run outside a git repository.
+- For Computer Use, set up Computer Use in codex. It doesn't work on Windows.
+- Keep worker in the project's `.claude/skills/`, not in `~/.claude/skills/`, and don't symlink it.
+- The scripts put codex work dirs in `.temp_files/subcodex/` at the project root. Add `.temp_files/` to your `.gitignore`.
+
+If Claude Code was running when you created `.claude/skills/` or `.claude/agents/`, restart it.
+
+## Other files
+
+### general-purpose.md (optional)
+
+`claude/agents/general-purpose.md` has nothing to do with worker. Copy it into a project's `.claude/agents/` and it replaces Claude Code's built-in general-purpose agent in that project. Subagents started as general-purpose or without a type then run on Opus, whatever model the main session uses. They can't start subagents of their own, and they get this file's short prompt instead of the built-in one. Copy it only if you want that.
+
+### AGENTS.md and CLAUDE.md
+
+These are my own project rules. AGENTS.md tells agents to put scratch files in `.temp_files/`, the same directory worker uses. When a project has both files, Claude Code reads only CLAUDE.md by default. To have it read both, run `/config` and set "Project instructions" to `claude-md-and-agents-md`.
 
 ## License
 
-Original skills (handoff, model-sub-claude, model-sub-codex, wait-what) and everything else authored here: [Unlicense](LICENSE) — public domain. Derived skill (grill-me): modified from [mattpocock/skills](https://github.com/mattpocock/skills), MIT licensed — see [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
+Everything here except grill-me is in the public domain under the [Unlicense](LICENSE). The exception, grill-me, is adapted from [mattpocock/skills](https://github.com/mattpocock/skills) and stays under that project's MIT license, as noted in [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 ---
 
 # 한국어
 
-Claude Code와 OpenAI Codex CLI를 위한 에이전트 스킬 모음 — 개인 프로젝트에서 매일 쓰는 스킬의 공개 스냅샷.
+개인 프로젝트에서 매일 쓰는 Claude Code 스킬과 에이전트 파일을 공개한 저장소다. Claude Code를 쓴다면 필요한 것만 골라 자기 프로젝트에 복사해 쓸 수 있다.
 
-| 스킬 | Claude | Codex | 하는 일 |
-|---|:---:|:---:|---|
-| `model-sub-codex` | ✓ | — | subagent 작업을 codex CLI로 넘기고, 메인 에이전트가 직접 실행한다. |
-| `model-sub-claude` | ✓ | — | 세션의 기본 subagent 모델 + effort를 고정한다. |
-| `grill-me` | ✓ | ✓ | 압박 질문을 반복해 에이전트와 사용자의 이해를 일치시킨다. |
-| `handoff` | ✓ | ✓ | 맥락 없는 에이전트도 이어받을 수 있는 인수인계 문서를 만든다. |
-| `wait-what` | ✓ | — | 직전 답변을 더 쉬운 말로 다시 설명한다. |
+## 저장소 구성
 
-모든 스킬은 수동 전용이다 — 명령을 입력했을 때만 실행된다.
+| 스킬 | 하는 일 |
+|---|---|
+| `grill-me` | 하려는 일을 Claude가 제대로 이해할 때까지 사용자에게 한 번에 하나씩 질문한다. |
+| `wait-what` | 직전 답변을 더 쉬운 한국어로 다시 설명한다. |
+| `worker` | Claude가 넘기는 일을 누가 맡을지 정한다. Claude subagent나 codex로 돌리는 GPT 모델에게 맡기거나, 둘을 섞거나, 아무에게도 맡기지 않는다. |
 
-## model-sub-codex
+스킬은 `claude/skills/`에 있다. 그 밖에 이런 파일이 있다.
 
-*Claude Code 전용. 설치·인증된 `codex` CLI와 프로젝트 루트의 Python 3.14+ `.venv` 필요.*
+- `claude/agents/worker-effort-*.md`: worker가 Claude 워커를 띄울 때 쓰는 에이전트.
+- `claude/agents/general-purpose.md`: Claude Code에 내장된 general-purpose 에이전트를 대신하는 파일. 쓸지 말지는 선택이다.
+- `AGENTS.md`, `CLAUDE.md`: 개인 프로젝트에서 쓰는 규칙. 참고용으로 올려 두었다.
 
-모드가 켜져 있는 동안 Claude가 subagent에게 줄 일은 codex로 간다. Claude가 번들 스크립트로 `codex exec`를 직접 실행하고 실행마다 출력 파일을 읽는다 — 중간에 릴레이 subagent가 없다. 모델: `astra` | `sol` | `luna`(GPT-6, 기본 `luna`), effort: `low` | `medium` | `high` | `xhigh` | `max`(기본 `max`).
+## 빠른 시작
 
-**설계 의도** — 두 모델의 강점만 조합한다.
+grill-me와 wait-what은 복사만 하면 된다. 저장소를 클론하고 스킬을 프로젝트의 `.claude/skills/`로 복사한다.
 
-- **오케스트레이터(Claude)**: 1M 컨텍스트, 높은 추론 품질
-- **워커(codex)**: 낮은 태스크당 비용, 빠른 처리
-
-각자의 약점은 상대가 메우므로, 높은 추론 품질과 비용 절감, 작업 속도를 함께 달성하는 것이 목표다.
-
-- 백그라운드 대기 스크립트 하나가 배치 전체를 몬다: 기계당 `codex exec` 최대 32개, 원인 불명 실패 뒤 한 번 재개, 조용해진 실행은 죽이지 않고 보고, 사용량 한도에서는 배치를 멈추고 리셋 뒤 같은 명령으로 이어 간다.
-- codex는 혼자 일한다: 모든 프롬프트 앞에 서브에이전트와 하위 codex 실행을 금지하는 고정 규칙이 붙고, 그래도 띄운 실행은 대기 스크립트가 보고한다.
-
-```
-/model-sub-codex              # gpt-6-luna + max
-/model-sub-codex sol          # gpt-6-sol + max
-/model-sub-codex astra high   # gpt-6-astra + high
+```sh
+git clone https://github.com/ymchoi/qbpowers.git
+cd qbpowers
+mkdir -p /path/to/project/.claude/skills
+cp -R claude/skills/grill-me /path/to/project/.claude/skills/
 ```
 
-## model-sub-claude
+`.claude/skills/`를 Claude Code 실행 중에 새로 만들었다면 Claude Code를 다시 시작한다. 그다음 `/grill-me` 뒤에 하려는 일을 적어 입력한다. 스킬은 모두 명령을 직접 입력할 때만 실행된다.
 
-*Claude Code 전용. `sub-effort-*` 에이전트 정의가 필요하다(설치 참조).*
-
-이후 세션 내내 Claude Code가 생성하는 모든 subagent의 기본 모델과 추론 effort를 고정한다. 모델: `fable` | `opus` | `sonnet` | `haiku`(기본 `opus`), effort: `low` | `medium` | `high` | `xhigh` | `max`(기본 `max`).
-
-subagent는 `sub-effort-<effort>` 에이전트 종류로 돈다 — Agent 도구에는 effort 파라미터가 없어서 정의 파일이 effort를 담는다 — 그리고 이 종류는 자기 subagent를 띄울 수 없다. ultracode가 켜져 있으면 workflow 에이전트도 같은 종류를 쓴다.
-
-```
-/model-sub-claude               # opus + max (기본값)
-/model-sub-claude sonnet        # sonnet + max (effort 생략 = max)
-/model-sub-claude sonnet high   # 가볍고 빠른 병렬 fan-out
-```
-
-`/model-sub-codex`와 하나의 토글 그룹을 이룬다 — 가장 최근 호출이 이긴다.
+worker는 준비할 것이 더 있다. 아래 worker 설명 끝의 [준비](#준비)에 정리해 두었다.
 
 ## grill-me
 
-에이전트가 한 턴에 하나씩 압박 질문을 던져, **사용자가 하려는 바에 대한 에이전트와 사용자의 이해를 일치시킨다.** 계획이든 요구사항이든 막연한 아이디어든 대상을 가리지 않는다. 각 질문에는 추천 답이 붙어 있어 승인하거나 반박하기만 하면 되고, 코드를 보면 알 수 있는 것은 묻지 않고 직접 찾아본다.
-
-단순하지만 강력하다 — 몇 번의 문답만으로 에이전트의 작업 방향이 사용자의 의도로 극적으로 수렴한다.
+`/grill-me` 뒤에 하려는 일을 적는다. 그러면 Claude가 그 일을 사용자와 똑같이 이해할 때까지 사용자에게 한 번에 하나씩 질문한다. 질문마다 추천 답과 짧은 이유를 붙인다. 코드나 웹에서 알 수 있는 것은 Claude가 직접 찾아보고, 찾을 수 없는 것만 사용자에게 묻는다.
 
 ```
-# 하려는 바를 먼저 말한 뒤 호출:
-사용자 활동 로그를 남기고 나중에 분석할 수 있게 만들고 싶다.
-/grill-me
+/grill-me 사용자 활동 로그를 남기고 나중에 분석하고 싶다.
 ```
-
-## handoff
-
-채팅 기록이 전혀 없는 새 에이전트가 작업을 이어받을 수 있도록 현재 세션의 인수인계 문서를 작성한다. 문서는 `.temp_files/` 아래 단일 Markdown 파일로 저장되어 — 채팅창에 긴 글이 쏟아지는 대신 경로만 돌려받는다 — 스킬은 자기 결과물을 새 에이전트의 눈으로 자체 비평해 빈틈을 메운 뒤 보고한다.
-
-```
-/handoff
-```
-
-→ `.temp_files/20260705_142310_handoff_auth_refactor/handoff.md` + "self-check passed".
-
-```
-/handoff 다음 세션이 바로 이어서 구현할 수 있게, 남은 작업을 체크리스트로
-```
-
-자유 서술 지시로 길이·언어·형식·초점을 조정한다. (Codex 트리거: `$handoff`.)
 
 ## wait-what
 
-*Claude Code 전용. 한국어로 답한다.*
-
-답변이 와닿지 않았을 때 쓴다. 맥락을 조금 되살려 직전 답변을 다시 설명하되, ASD-STE100 Simplified Technical English의 명료성 원칙 — 한 문장에 한 가지, 짧은 문장, 능동태, 같은 뜻에는 같은 낱말 — 을 적용해 다시 쓴다.
+답변이 잘 와닿지 않을 때 `/wait-what`을 입력한다. Claude가 맥락을 조금 더 붙여 직전 답변을 더 쉬운 한국어로 다시 설명한다. 다른 언어로 받으려면 `SKILL.md`의 한 줄짜리 본문과 `description`을 고친다.
 
 ```
 /wait-what
 ```
 
-ASD-STE100은 항공기 정비 설명서를 위해 만든 통제 영어다. 승인 어휘 목록이 아니라 명료성 원칙만 빌려 왔고, 답변 자체는 한국어다. 다른 언어를 원하면 스킬의 한 줄을 고치면 된다.
+## worker
 
-## 설치
+`/worker`는 세션이 끝날 때까지 Claude가 넘기는 일을 누가 맡을지 정한다. 마지막으로 입력한 `/worker`가 적용된다. Claude 워커는 Opus subagent이고, GPT 워커는 codex CLI로 돌리는 `gpt-6-astra`와 `gpt-6.1-sol`이다.
 
-- **Claude Code**: `claude/skills/` 아래 디렉터리를 프로젝트의 `.claude/skills/`로 복사한다. `model-sub-claude`를 쓰려면 `claude/agents/sub-effort-*.md`도 `.claude/agents/`로 복사한다(그 디렉터리를 새로 만들었다면 Claude Code를 재시작한다).
-- **Codex CLI**: `codex/skills/` 아래 디렉터리를 프로젝트의 `.codex/skills/`로 복사한다.
+```
+/worker              # /worker codex와 같다
+/worker codex
+/worker codex-all
+/worker claude
+/worker claude-all
+/worker none
+```
 
-## 저장소 부가물
+`codex`나 `codex-all` 뒤에 `fast`나 `ultrafast`를 붙이면 GPT 워커가 서비스 티어 `priority`나 `ultrafast`로 돈다. 예를 들면 `/worker codex fast`다. 붙이지 않았을 때와 `claude`, `claude-all`에서는 표준 속도로 돈다.
 
-- 루트 `AGENTS.md` / `CLAUDE.md` — 이 스킬들이 자라난 실제 에이전트 지침 파일. 프로젝트 고유 섹션은 제거했으며 템플릿으로 쓸 수 있다.
-- `utils/fetch_web/` — `AGENTS.md`의 리서치 규칙이 사용하는 Patchright 기반 폴백 페이지 페처. `patchright==1.59.1`과 Chrome이 필요하고(`pip install patchright==1.59.1 && patchright install chrome`), 항상 headed로 동작한다 — Patchright는 headless에서 봇 탐지 회피 효과를 잃는다.
+명령마다 아래 표의 열 하나를 고른다. `claude`와 `codex`는 깊은 리뷰를 그 변경을 만든 쪽과 다른 모델 계열에 맡기고, `claude-all`과 `codex-all`은 같은 계열에 맡긴다. Computer Use는 어느 열에서든 codex로 돈다. `none`은 워커를 띄우지 않으므로 Claude가 모든 일을 직접 한다.
 
-## 이식성
+| 일 | claude | claude-all | codex | codex-all |
+|---|---|---|---|---|
+| 어려운 문제 | opus max | opus max | astra max | astra max |
+| 코드, 테스트, 문서 작성 | opus xhigh | opus xhigh | astra xhigh | astra xhigh |
+| 깊은 리뷰 | astra xhigh | opus xhigh | opus xhigh | astra xhigh |
+| 웹 검색과 조사 | opus high | opus high | sol max | sol max |
+| 일반 작업 | opus high | opus high | sol max | sol max |
+| 단순 작업 | opus medium | opus medium | sol xhigh | sol xhigh |
+| Computer Use | sol max | sol max | sol max | sol max |
 
-스킬들은 자신이 태어난 프로젝트의 몇 가지 관례를 전제한다 — 각자의 것으로 바꿔 쓰면 된다.
+칸마다 앞은 모델, 뒤는 effort다. `opus`는 Claude subagent이고, `astra`(`gpt-6-astra`)와 `sol`(`gpt-6.1-sol`)은 codex로 돈다. 행마다 어떤 일이 들어가는지는 [SKILL.md](claude/skills/worker/SKILL.md)에 자세히 있다.
 
-- `.temp_files/` — 프로젝트 루트의 스크래치 디렉터리 관례(handoff와 model-sub-codex가 사용).
-- `<GATE_MARKER>` — `model-sub-codex`와 `AGENTS.md`의 플레이스홀더로, 파일 수정 승인 문구를 뜻한다(그런 게이트를 쓰지 않는다면 해당 규칙을 빼면 된다).
+Claude는 할 수 있으면 워커 여러 개를 동시에 돌린다. 워커가 실패하면 슬쩍 다른 방법으로 대신하지 않고 실패했다고 알린다.
+
+### 준비
+
+qbpowers 클론에서 아래 명령으로 worker와 에이전트 파일을 프로젝트에 복사하고 venv를 만든다.
+
+```sh
+mkdir -p /path/to/project/.claude/skills /path/to/project/.claude/agents
+cp -R claude/skills/worker /path/to/project/.claude/skills/
+cp claude/agents/worker-effort-*.md /path/to/project/.claude/agents/
+cd /path/to/project && python3.14 -m venv .venv  # 프로젝트에 Python 3.14 .venv가 이미 있으면 건너뛴다
+```
+
+- codex CLI는 PATH에 잡혀 있고 로그인한 상태여야 하며, 파일을 쓸 수 있어야 한다. `codex exec`는 기본값이 읽기 전용이므로 `~/.codex/config.toml`에 `sandbox_mode = "workspace-write"`를 넣는다. git 저장소 밖에서는 실행되지 않는다.
+- Computer Use를 쓰려면 codex에 Computer Use를 설정해 둔다. Windows에서는 쓸 수 없다.
+- worker는 `~/.claude/skills/`가 아니라 프로젝트의 `.claude/skills/`에 두고, 심볼릭 링크로 연결하지 않는다.
+- 스크립트는 codex 작업 디렉터리를 프로젝트 루트의 `.temp_files/subcodex/`에 만든다. `.temp_files/`는 `.gitignore`에 넣는다.
+
+`.claude/skills/`나 `.claude/agents/`를 Claude Code 실행 중에 새로 만들었다면 다시 시작한다.
+
+## 그 밖의 파일
+
+### general-purpose.md (선택)
+
+`claude/agents/general-purpose.md`는 worker와 관계없다. 프로젝트의 `.claude/agents/`에 복사하면 그 프로젝트에서는 Claude Code에 내장된 general-purpose 에이전트 대신 이 파일이 쓰인다. 그러면 general-purpose로 띄우거나 종류 없이 띄운 subagent는 메인 세션이 어떤 모델이든 Opus로 돈다. 자기 subagent는 띄우지 못하고, 내장 프롬프트 대신 이 파일의 짧은 프롬프트를 받는다. 이렇게 되기를 원할 때만 복사한다.
+
+### AGENTS.md와 CLAUDE.md
+
+개인 프로젝트에서 쓰는 규칙이다. AGENTS.md는 임시 파일을 worker와 같은 `.temp_files/`에 두게 한다. 프로젝트에 두 파일이 함께 있으면 Claude Code는 기본적으로 CLAUDE.md만 읽는다. 둘 다 읽게 하려면 `/config`에서 "Project instructions"를 `claude-md-and-agents-md`로 바꾼다.
 
 ## 라이선스
 
-여기서 직접 작성한 스킬(handoff, model-sub-claude, model-sub-codex, wait-what)과 그 밖의 모든 것: [Unlicense](LICENSE) — 퍼블릭 도메인. 파생 스킬(grill-me): [mattpocock/skills](https://github.com/mattpocock/skills)를 개조한 것으로 MIT 라이선스 — [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) 참조.
+`grill-me`를 뺀 나머지는 모두 [Unlicense](LICENSE)에 따라 퍼블릭 도메인으로 공개한다. `grill-me`는 [mattpocock/skills](https://github.com/mattpocock/skills)의 스킬을 고친 것이라 원래의 MIT 라이선스를 따르며, 고지는 [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md)에 있다.
