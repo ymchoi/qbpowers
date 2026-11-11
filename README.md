@@ -65,7 +65,7 @@ Until the session ends, `/worker` sets who does the work Claude delegates. Depen
 
 Add `fast` or `ultrafast` after `hybrid`, `codex-light` or `codex`, as in `/worker hybrid fast`, to put the GPT workers on service tier `priority` or `ultrafast`. Without it, and always under `claude-light` and `claude`, they run at standard speed.
 
-Each form picks a column of the table below. `claude-light` and `claude` use Claude workers, `codex-light` and `codex` use GPT workers, and `hybrid` mixes the two. The `-light` columns use lower efforts or models. Computer Use runs through codex in every column. `none` starts no workers, so Claude does all the work itself.
+`/worker` picks a column of the table below. From then on, Claude looks at each task it delegates and picks the row of that column that fits it. `claude-light` and `claude` use Claude workers, `codex-light` and `codex` use GPT workers, and `hybrid` mixes the two. The `-light` columns use lower efforts or models. Computer Use runs through codex in every column. `none` starts no workers, so Claude does all the work itself.
 
 | Work | claude-light | claude | hybrid | codex-light | codex |
 |---|---|---|---|---|---|
@@ -180,7 +180,7 @@ worker는 준비할 것이 더 있다. 아래 worker 설명 끝의 [준비](#준
 
 `hybrid`, `codex-light`, `codex` 뒤에 `fast`나 `ultrafast`를 붙이면 GPT 워커가 서비스 티어 `priority`나 `ultrafast`로 돈다. 예를 들면 `/worker hybrid fast`다. 붙이지 않았을 때와 `claude-light`, `claude`에서는 표준 속도로 돈다.
 
-명령마다 아래 표의 열 하나를 고른다. `claude-light`와 `claude`는 Claude 워커를, `codex-light`와 `codex`는 GPT 워커를 쓰고, `hybrid`는 둘을 섞는다. `-light` 쪽은 effort나 모델을 낮춰 쓴다. Computer Use는 어느 열에서든 codex로 돈다. `none`은 워커를 띄우지 않으므로 Claude가 모든 일을 직접 한다.
+`/worker`로 아래 표의 열 하나를 정하면, 그 뒤로 Claude는 일을 넘길 때마다 그 일의 성격을 보고 그 열에서 맞는 행을 알아서 고른다. `claude-light`와 `claude`는 Claude 워커를, `codex-light`와 `codex`는 GPT 워커를 쓰고, `hybrid`는 둘을 섞는다. `-light` 쪽은 effort나 모델을 낮춰 쓴다. Computer Use는 어느 열에서든 codex로 돈다. `none`은 워커를 띄우지 않으므로 Claude가 모든 일을 직접 한다.
 
 | 일 | claude-light | claude | hybrid | codex-light | codex |
 |---|---|---|---|---|---|
