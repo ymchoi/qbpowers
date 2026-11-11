@@ -51,7 +51,7 @@ Use `/wait-what` when an answer didn't land. Claude explains its previous answer
 
 ## worker
 
-Until the session ends, `/worker` sets who does the work Claude delegates. The latest `/worker` wins. Claude workers are Opus subagents. GPT workers are `gpt-6-astra` and `gpt-6.1-sol`, run through the codex CLI.
+Until the session ends, `/worker` sets who does the work Claude delegates. Depending on your subscription plan, I recommend running the main agent, which does the delegating, on Opus 5.5 max, or on Fable 5.2 max or xhigh. It mostly orchestrates, so it does not use many tokens. The latest `/worker` wins. Claude workers are Opus subagents. GPT workers are `gpt-6-astra` and `gpt-6.1-sol`, run through the codex CLI.
 
 ```
 /worker              # same as /worker hybrid
@@ -166,7 +166,7 @@ worker는 준비할 것이 더 있다. 아래 worker 설명 끝의 [준비](#준
 
 ## worker
 
-`/worker`는 세션이 끝날 때까지 Claude가 넘기는 일을 누가 맡을지 정한다. 마지막으로 입력한 `/worker`가 적용된다. Claude 워커는 Opus subagent이고, GPT 워커는 codex CLI로 돌리는 `gpt-6-astra`와 `gpt-6.1-sol`이다.
+`/worker`는 세션이 끝날 때까지 Claude가 넘기는 일을 누가 맡을지 정한다. 일을 넘기는 메인 에이전트는 구독 요금제에 맞춰 Opus 5.5 max, 또는 Fable 5.2 max나 xhigh로 두기를 권한다. 메인 에이전트는 주로 오케스트레이션을 맡아 토큰을 많이 쓰지 않는다. 마지막으로 입력한 `/worker`가 적용된다. Claude 워커는 Opus subagent이고, GPT 워커는 codex CLI로 돌리는 `gpt-6-astra`와 `gpt-6.1-sol`이다.
 
 ```
 /worker              # /worker hybrid와 같다
