@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "Interview the user until shared understanding"
+  default_prompt: "Use $grill-me to interview me about what I want to do before starting the work."
+policy:
+  allow_implicit_invocation: false

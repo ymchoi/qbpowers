@@ -1,0 +1,5 @@
+interface:
+  display_name: "Worker"
+  short_description: "Choose native Codex subagents for this session"
+policy:
+  allow_implicit_invocation: false

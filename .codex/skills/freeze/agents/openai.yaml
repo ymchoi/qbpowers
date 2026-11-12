@@ -1,0 +1,5 @@
+interface:
+  display_name: "Freeze"
+  short_description: "Freeze file changes outside .temp_files/"
+policy:
+  allow_implicit_invocation: false

@@ -1,10 +1,11 @@
 # Third-Party Licenses
 
-The following skill is a modified derivative of a skill from
-[mattpocock/skills](https://github.com/mattpocock/skills) and remains under the
+The following skills are modified derivatives of a skill from
+[mattpocock/skills](https://github.com/mattpocock/skills) and remain under the
 original MIT License:
 
-- `claude/skills/grill-me`
+- `.claude/skills/grill-me`
+- `.codex/skills/grill-me`
 
 ---
 

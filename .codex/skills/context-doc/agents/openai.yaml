@@ -1,0 +1,5 @@
+interface:
+  display_name: "Context Doc"
+  short_description: "Keep a project's documents small and current"
+policy:
+  allow_implicit_invocation: false

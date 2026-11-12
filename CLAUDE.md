@@ -1,3 +1,3 @@
-- Project rules in `AGENTS.md` override Claude Code's defaults: put temporary files in `.temp_files/`, not the session scratchpad, and edit files tracked by git with `Edit`/`Write` even in bypass mode, not with `sed` or heredocs.
-- If `WebFetch` truncates a page, refuses a domain (`robots.txt`) or hits a 403/402 bot block, do not conclude anything from the result or quietly switch sources. Download the page with `curl -L -o` into `.temp_files/` and read it fully with `Read`.
+- Project rules in `AGENTS.md` override Claude Code's defaults, including the session scratchpad for temporary files and the bypass-mode allowance to edit files with `sed` or heredocs.
+- If `WebFetch` or the `web-fetch` agent truncates a page, refuses a domain (`robots.txt`) or hits a 403/402 bot block, do not conclude anything from the result or quietly switch sources. Download the page with `curl -L -o` into `.temp_files/` and read it fully with `Read`.
 - Do not pass `name` when you spawn a subagent: a named one ignores the `effort` argument, and its result reaches you cut at 4,000 characters.

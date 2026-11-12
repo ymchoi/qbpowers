@@ -1,2 +1,7 @@
 .DS_Store
 .temp_files/
+.claude/settings.local.json
+.claude/agent-memory-local/
+.claude/worktrees/
+CLAUDE.local.md
+__pycache__/
