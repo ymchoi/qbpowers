@@ -1,28 +1,36 @@
 ---
 name: worker
-description: Choose native Codex subagents for this session. Usage $worker [codex-light | codex | codex-max | none], default codex.
+description: Choose native Codex subagents for this session. Usage $worker [codex-lightest | codex-lighter | codex-light | codex | codex-max | none], default codex.
 ---
 
 # Worker routing
 
 Until the session ends, delegate work by the column this invocation selects. The latest `$worker` wins, and a routing table the user gives in the session replaces this one until the next `$worker`.
 
-- `$worker` or `$worker codex`: the `codex` column.
-- `$worker codex-light`: the `codex-light` column.
-- `$worker codex-max`: the `codex-max` column.
+- `$worker <column>`: that column of the table below. `$worker` alone selects `codex`.
 - `$worker none`: start no workers or new worker tasks; do the work yourself. Let already-running tasks finish and collect their results.
 
-| Work | codex-light | codex | codex-max |
-|---|---|---|---|
-| Hard: a bug of unknown cause, a design or architecture decision, a change across several modules, a change that is hard to undo (security, auth, payments, data migration) | astra max | astra max | astra max |
-| Writing or changing code, tests or documents | sol max | astra max | astra max |
-| Deep review of an important change | sol max | astra max | astra max |
-| Web search; research in external documents or open source | sol max | sol max | astra max |
-| General: the scope is set and judgment stays inside it. Reproduction, simple diagnosis, routine review and checks | sol max | sol max | astra max |
-| Simple: nothing to interpret. Finding, reading, listing; running tests and reporting the result; a spelled-out edit in one or two files; mechanical repetition | sol max | sol max | astra max |
-| Computer Use, one such worker at a time | sol max | sol max | astra max |
+Kinds of work:
 
-`astra` is `gpt-6-astra` and `sol` is `gpt-6.1-sol`; the word after the model is its `reasoning_effort`. Service tier follows the parent session; this skill has no speed option.
+- **Hard**: a bug of unknown cause, a design or architecture decision, a change across several modules, a change that is hard to undo (security, auth, payments, data migration).
+- **Review**: deep review of an important change.
+- **Writing**: writing or changing code, tests or documents.
+- **General**: the scope is set and judgment stays inside it. Reproduction, simple diagnosis, routine review and checks.
+- **Research**: web search; research in external documents or open source.
+- **Simple**: nothing to interpret. Finding, reading, listing; running tests and reporting the result; a spelled-out edit in one or two files; mechanical repetition.
+- **Computer Use**: one such worker at a time.
+
+| Work | codex-lightest | codex-lighter | codex-light | codex | codex-max |
+|---|---|---|---|---|---|
+| Hard | sol high | sol xhigh | sol max | astra xhigh | astra max |
+| Review | sol high | sol xhigh | sol xhigh | sol max | astra max |
+| Writing | terra xhigh | sol high | sol high | sol xhigh | astra xhigh |
+| General | terra high | terra xhigh | terra xhigh | sol high | sol max |
+| Research | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Simple | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | astra max |
+
+`astra` is `gpt-6-astra`, `sol` is `gpt-6.1-sol`, `terra` is `gpt-6.1-terra` and `luna` is `gpt-6-luna`; the word after the model is its `reasoning_effort`. Service tier follows the parent session; this skill has no speed option.
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
 
