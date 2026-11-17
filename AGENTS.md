@@ -11,6 +11,7 @@
 - Commit only when the user asks.
 
 ## Interpreting and Answering User Requests
+- Act only on an explicit command to act. Treat everything else the user says, questions, opinions and suggestions included, as discussion: answer it and change nothing, except under `.temp_files/`.
 - If a request seems mistaken or a simpler approach exists, say so briefly, with the reason.
 - Before answering about a symptom the user describes, check the relevant facts with tools.
 
