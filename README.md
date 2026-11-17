@@ -132,7 +132,7 @@ Codex의 `$worker`는 `codex-lighter`, `codex-light`, `codex`(기본값), `codex
 
 ### 코드 변경 리뷰
 
-Claude는 코드 변경을 끝냈다고 알리기 전에 그 코드를 작성하지 않은 워커에게 리뷰를 맡긴다. 일반 작업 워커가 가벼운 리뷰를 한다. 깊은 리뷰가 필요한 변경에는 표의 깊은 리뷰 워커를 쓴다. 단순 작업에 해당하는 수정과 문서만 바꾸는 작업에는 리뷰가 필요하지 않다.
+Claude는 git이 추적하는 코드를 바꾸면 끝냈다고 알리기 전에 그 코드를 작성하지 않은 워커에게 리뷰를 맡긴다. `.temp_files/` 안의 일회용 코드처럼 git이 추적하지 않는 코드는 리뷰하지 않는다. 일반 작업 워커가 가벼운 리뷰를 한다. 깊은 리뷰가 필요한 변경에는 표의 깊은 리뷰 워커를 쓴다. 단순 작업에 해당하는 수정과 문서만 바꾸는 작업에는 리뷰가 필요하지 않다.
 
 리뷰 워커에게는 요구사항과 이번 작업에서 바꾼 파일만의 diff를 넘긴다. Claude가 의심하는 부분은 넘기지 않는다. 리뷰 종류에 맞는 가이드 파일의 경로도 함께 준다. 가벼운 리뷰는 [review-light.md](.claude/skills/worker/review-light.md)를, 깊은 리뷰는 [review-deep.md](.claude/skills/worker/review-deep.md)를 따른다. Claude는 가이드 내용을 지시문에 옮겨 적지 않는다. Codex 버전도 `.claude/skills/worker/`에 있는 같은 두 파일을 쓴다.
 
