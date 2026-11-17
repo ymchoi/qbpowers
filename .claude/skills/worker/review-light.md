@@ -14,10 +14,12 @@ Read the diff and the code around it.
    - keep: you can name the wrong edit it prevents at that line, and code could say it only at greater cost.
    - delete: it restates the code or an existing test, records history or task IDs, or labels a section.
    - code: a name, a type, an assertion or a small test can say it at no greater cost. Say which.
-   - fix: it explains a workaround or a known problem, even if it also states policy. The cause should be fixed, or
-     reported as open.
+   - fix: it explains a workaround or a known problem whose cause this repository can change, even if it also states
+     policy. The cause should be fixed, or reported as open. Coping with a cause it cannot change is not a
+     workaround.
    - docs: it explains design or policy rather than these lines. Say whether the project's documents already hold it.
-   A string that a program reads, such as CLI help taken from a docstring or a tool description, is not a comment.
+   A string that a program or a tool actually reads, such as CLI help taken from a docstring or a linter directive,
+   is not a comment.
    Report as well a comment nearby that the change has made untrue.
 2. Simplicity. Code for a case that cannot happen; an option, abstraction, fallback or validation nobody asked for;
    code that behaves differently under test.
@@ -31,7 +33,8 @@ Examples of comment verdicts:
 - delete: `"""Return the single registration whose detector matches the input."""` on a function named `detect`.
 - code: `# Ledger names write bottler names without spaces; shop listings spell them out.` above a test: say it in
   the test's name.
-- fix: `/* ignore */` in an empty catch block: handle the error or let it surface.
+- fix: `# tmp_path is kept as a compatibility name for tests that wrap the old helpers.`: change the tests and remove
+  the old name.
 - docs: three lines on the admission policy above one function: the policy belongs in the project's document.
 
 ## Findings
