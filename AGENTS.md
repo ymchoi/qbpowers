@@ -20,10 +20,16 @@
 - Do not add handling for cases that are very unlikely to happen, or just-in-case options, abstractions, fallbacks, exception handling or validation: over-engineering is itself a source of bugs. Validation at boundaries (user input, external APIs, file and queue messages) and handling of external failures that really occur are still required.
 - Do not add production code that behaves differently under test (for example, checks of a test environment variable, or bypasses taken only in tests). If code is hard to test, inject dependencies such as clocks, clients and paths through parameters or a `Protocol`, defaulting to production behavior.
 - Name tests and identifiers by behavior, not by review rounds or task IDs.
-- Write comments, in English, only for reasons, constraints or caveats the code cannot show. Do not restate the code or record change history or task IDs.
+
+## Comments
+- Say it in code, not in a comment: a name (a test's name included), a type, an assertion or a small test. Docstrings and JSDoc count as comments.
+- Do not explain a workaround: fix its cause, or report it as open when the cause is outside the task. Design and policy go in the project's documents and are not repeated in code; the reason for a change goes in the commit message.
+- Write a comment only when you can name the wrong edit it prevents at that line and code could say it only at greater cost, such as a new abstraction or a heavy test: one or two lines in English giving the reason or constraint, with its source when that is external. Write a docstring only for a contract the signature cannot show.
+- Do not restate code, record history or task IDs, or label sections. Fix or delete a comment your change makes untrue.
 
 ## Verification and Reporting
-- After edits, run the formatter and linter configured for each language you changed (Python: Ruff, mypy and the relevant pytest tests). If a check fails, fix the root cause instead of loosening or ignoring the check. If a check cannot run, report exactly what blocked it.
+- Before reporting a task as done, run the checks configured for each language you changed: formatter, linter and type checker, then the tests relevant to the change (Python: Ruff, mypy, pytest). If a check fails, fix the root cause instead of loosening or ignoring the check. If a check cannot run, report exactly what blocked it.
+- A check passes only when it ran everything it claims to check and all of it succeeded. Exit non-zero when any part fails, when nothing was checked, or when a required step was skipped.
 - For a bug fix, first add a test that reproduces the bug, where practical.
 - Run tests headless when possible (for example, Playwright headless). Open OS windows only when the user allows it.
 - Report each check as passed, partially checked, failed or not run. Do not present a test on mock data as a real-environment test.

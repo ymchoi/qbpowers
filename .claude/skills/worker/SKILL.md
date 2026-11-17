@@ -1,6 +1,6 @@
 ---
 name: worker
-description: Choose the workers this session delegates to. Usage /worker [COLUMN [fast|ultrafast] | none], where COLUMN is claude, hybrid or codex, optionally with -lightest, -lighter, -light or -max; default codex.
+description: Choose the workers this session delegates to. Usage /worker [COLUMN [fast|ultrafast] | none], where COLUMN is claude, hybrid or codex, optionally with -lighter, -light or -max; default codex.
 disable-model-invocation: true
 ---
 
@@ -15,47 +15,49 @@ Until the session ends, delegate work by the column this invocation selects. The
 
 Kinds of work:
 
-- **Hard**: a bug of unknown cause, a design or architecture decision, a change across several modules, a change that is hard to undo (security, auth, payments, data migration).
-- **Review**: deep review of an important change.
-- **Writing**: writing or changing code, tests or documents.
-- **General**: the scope is set and judgment stays inside it. Reproduction, simple diagnosis, routine review and checks.
+- **Hard**: what to do is not yet known, as with a bug of unknown cause or a design or architecture decision; or the effect, once it runs, is costly to undo; and work of that kind.
+- **Deep Review**: review that looks for defects, reading callers and tests. For the result of a Hard task, and for a change where a mistake is costly to undo, such as deleting or overwriting files or data, handling secrets or permissions, spending money, and changes of that kind.
+- **Writing**: writing or changing code, tests or documents, including carrying out a decided design, however many modules it touches.
+- **General**: the scope is set and judgment stays inside it, as with reproduction, simple diagnosis, measurement, routine checks and light review of a code change (comments, simplicity, documents), and work of that kind.
 - **Research**: web search; research in external documents or open source.
-- **Simple**: nothing to interpret. Finding, reading, listing; running tests and reporting the result; a spelled-out edit in one or two files; mechanical repetition.
+- **Simple**: nothing to interpret, as with finding, reading and listing, running tests and reporting the result, a spelled-out edit in one or two files, mechanical repetition, and work of that kind.
 - **Computer Use**: one such worker at a time.
 
-| Work | claude-lightest | claude-lighter | claude-light | claude | claude-max |
-|---|---|---|---|---|---|
-| Hard | opus high | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| Review | opus medium | opus medium | opus high | opus high | opus xhigh |
-| Writing | sonnet medium | opus medium | opus high | opus high | opus xhigh |
-| General | haiku xhigh | sonnet medium | opus medium | opus medium | opus xhigh |
-| Research | haiku high | haiku max | sonnet high | opus medium | opus high |
-| Simple | haiku high | haiku max | sonnet high | opus medium | opus high |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| Work | claude-lighter | claude-light | claude | claude-max |
+|---|---|---|---|---|
+| Hard | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
+| Deep Review | opus medium | opus high | opus high | opus xhigh |
+| Writing | opus medium | opus high | opus high | opus xhigh |
+| General | sonnet medium | opus medium | opus medium | opus xhigh |
+| Research | haiku max | sonnet high | opus medium | opus high |
+| Simple | haiku max | sonnet high | opus medium | opus high |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
 
-| Work | hybrid-lightest | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
-|---|---|---|---|---|---|
-| Hard | opus high | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| Review | opus medium | opus medium | opus high | opus high | opus xhigh |
-| Writing | terra xhigh | sol high | sol high | sol xhigh | astra xhigh |
-| General | terra high | terra xhigh | terra xhigh | sol high | sol max |
-| Research | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Simple | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| Work | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
+|---|---|---|---|---|
+| Hard | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
+| Deep Review | opus medium | opus high | opus high | opus xhigh |
+| Writing | sol high | sol high | sol xhigh | astra xhigh |
+| General | terra xhigh | terra xhigh | sol high | sol max |
+| Research | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Simple | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
 
-| Work | codex-lightest | codex-lighter | codex-light | codex | codex-max |
-|---|---|---|---|---|---|
-| Hard | sol high | sol xhigh | sol max | astra xhigh | astra max |
-| Review | sol high | sol xhigh | sol xhigh | sol max | astra max |
-| Writing | terra xhigh | sol high | sol high | sol xhigh | astra xhigh |
-| General | terra high | terra xhigh | terra xhigh | sol high | sol max |
-| Research | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Simple | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | astra max |
+| Work | codex-lighter | codex-light | codex | codex-max |
+|---|---|---|---|---|
+| Hard | sol xhigh | sol max | astra xhigh | astra max |
+| Deep Review | sol xhigh | sol xhigh | sol max | astra max |
+| Writing | sol high | sol high | sol xhigh | astra xhigh |
+| General | terra xhigh | terra xhigh | sol high | sol max |
+| Research | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Simple | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | astra max |
 
 `opus`, `sonnet`, `haiku` and `fable` are Claude subagents; `astra` (`gpt-6-astra`), `sol` (`gpt-6.1-sol`), `terra` (`gpt-6.1-terra`) and `luna` (`gpt-6-luna`) run through codex. The word after the model is its effort. Computer Use always runs through codex, in the claude columns too.
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
+
+Have a code change reviewed before you report it done, by a worker that did not write it: a light review by a General worker, or a Deep Review where its definition applies. A Simple edit or a change to documents alone needs none. Give the reviewer the requirements and the diff, not your suspicions; it follows `review-guide.md` in this folder. Fix each finding or reject it with a reason. If a fix adds logic beyond what its finding asked for, have only the fixed lines reviewed once more; no further rounds. Report the counts, what you rejected and why, and what is left.
 
 If a worker fails, report it; do not quietly hand its work to a different worker or do it yourself. Trying the same worker again is fine.
 

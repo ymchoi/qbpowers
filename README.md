@@ -29,21 +29,18 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 
 ### 워커 선택
 
-`/worker` 뒤에는 `claude`, `hybrid`, `codex` 중 한 계열을 적는다. 계열 이름에 `-lightest`, `-lighter`, `-light`, `-max`를 붙이면 단계를 바꾼다. 붙이지 않으면 그 계열의 기본 단계를 쓴다. `/worker`만 입력하면 `codex`를 쓴다.
+`/worker` 뒤에는 `claude`, `hybrid`, `codex` 중 한 계열을 적는다. 계열 이름에 `-lighter`, `-light`, `-max`를 붙이면 단계를 바꾼다. 붙이지 않으면 그 계열의 기본 단계를 쓴다. `/worker`만 입력하면 `codex`를 쓴다.
 
 ```
 /worker              # /worker codex와 같다
-/worker claude-lightest
 /worker claude-lighter
 /worker claude-light
 /worker claude
 /worker claude-max
-/worker hybrid-lightest [fast|ultrafast]
 /worker hybrid-lighter [fast|ultrafast]
 /worker hybrid-light [fast|ultrafast]
 /worker hybrid [fast|ultrafast]
 /worker hybrid-max [fast|ultrafast]
-/worker codex-lightest [fast|ultrafast]
 /worker codex-lighter [fast|ultrafast]
 /worker codex-light [fast|ultrafast]
 /worker codex [fast|ultrafast]
@@ -56,7 +53,7 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 - `codex` 계열은 모든 일에 GPT 워커를 쓴다.
 - `none`은 새 워커를 실행하지 않는다. Claude가 직접 일한다. 이미 실행 중인 워커는 맡은 일을 마친다.
 
-각 계열에는 `lightest`, `lighter`, `light`, 기본, `max`의 다섯 단계가 있다. 가벼운 단계에서는 작은 모델을 더 많이 쓰거나 effort를 낮춘다. 높은 단계로 갈수록 큰 모델이나 높은 effort를 더 많이 쓴다. 모든 작업의 모델과 effort가 단계마다 바뀌는 것은 아니다. 예를 들어 `claude-light`와 `claude`는 작성에 모두 `opus high`를 쓴다. `max`도 모든 작업에 같은 모델이나 `max` effort를 쓰지는 않는다.
+각 계열에는 `lighter`, `light`, 기본, `max`의 네 단계가 있다. 가벼운 단계에서는 작은 모델을 더 많이 쓰거나 effort를 낮춘다. 높은 단계로 갈수록 큰 모델이나 높은 effort를 더 많이 쓴다. 모든 작업의 모델과 effort가 단계마다 바뀌는 것은 아니다. 예를 들어 `claude-light`와 `claude`는 작성에 모두 `opus high`를 쓴다. `max`도 모든 작업에 같은 모델이나 `max` effort를 쓰지는 않는다.
 
 `hybrid`와 `codex` 계열의 모든 설정 뒤에는 `fast`나 `ultrafast` 중 하나를 붙일 수 있다. 위 예에서 `[fast|ultrafast]`는 둘 중 하나를 고르거나 생략한다는 뜻이다. `fast`는 GPT 워커의 서비스 티어를 `priority`로 정한다. `ultrafast`는 서비스 티어를 `ultrafast`로 정한다. 생략하면 표준 속도로 실행한다. `claude` 계열은 속도 옵션을 받지 않으며, Computer Use용 GPT 워커도 표준 속도로 실행한다.
 
@@ -70,50 +67,56 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 
 사용자가 설정을 고르면 Claude는 그 설정에서 작업 종류에 맞는 모델과 effort를 고른다. 예를 들어 `hybrid`에서는 코드 작성에 `sol xhigh`, 버그 재현에 `sol high`를 쓴다.
 
-원인을 모르는 버그, 설계 결정, 여러 모듈에 걸친 변경, 되돌리기 어려운 변경은 어려운 일로 본다. 버그 재현이나 간단한 진단, 일상적인 점검처럼 정해진 범위 안에서 판단이 필요한 일은 일반 작업으로 본다. 찾기와 읽기, 테스트 실행, 내용이 정해진 수정, 기계적인 반복은 단순 작업으로 본다. 조사는 웹 검색과 외부 문서·오픈소스 조사를 말한다. Computer Use는 한 번에 하나만 실행한다.
+무엇을 해야 할지 아직 모르는 일은 어려운 일로 본다. 원인을 모르는 버그나 설계·구조 결정이 여기에 속한다. 실행한 뒤 되돌리는 데 큰 비용이 드는 일도 여기에 속한다.
+
+깊은 리뷰는 변경된 코드를 호출하는 곳과 테스트까지 읽으며 결함을 찾는 일이다. 어려운 일의 결과와 잘못되면 되돌리는 데 큰 비용이 드는 변경에 쓴다. 파일이나 데이터를 지우거나 덮어쓰는 변경, 비밀정보나 권한을 다루는 변경, 돈을 쓰는 변경 등이 해당한다.
+
+코드·테스트·문서를 쓰거나 고치는 일은 작성으로 본다. 이미 정한 설계를 구현하는 일은 여러 모듈을 고쳐도 작성에 속한다. 일반 작업은 범위가 정해져 있고 그 안에서 판단하는 일이다. 버그 재현, 간단한 진단, 측정, 일상적인 점검, 코드 변경의 가벼운 리뷰가 여기에 속한다.
+
+해석할 여지가 없는 일은 단순 작업으로 본다. 찾기와 읽기, 목록 만들기, 테스트 실행과 결과 보고, 한두 파일의 내용이 정해진 수정, 기계적인 반복이 여기에 속한다. 조사는 웹 검색과 외부 문서·오픈소스 조사를 말한다. Computer Use는 한 번에 하나만 실행한다.
 
 모델 이름 뒤에 effort를 적는다. `opus xhigh`는 Opus 워커를 xhigh effort로 쓴다는 뜻이다.
 
 #### Claude 워커 중심
 
-| 일 | claude-lightest | claude-lighter | claude-light | claude | claude-max |
-|---|---|---|---|---|---|
-| 어려운 일 | opus high | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| 중요한 변경의 깊은 리뷰 | opus medium | opus medium | opus high | opus high | opus xhigh |
-| 코드·테스트·문서 작성 | sonnet medium | opus medium | opus high | opus high | opus xhigh |
-| 일반 작업 | haiku xhigh | sonnet medium | opus medium | opus medium | opus xhigh |
-| 조사 | haiku high | haiku max | sonnet high | opus medium | opus high |
-| 단순 작업 | haiku high | haiku max | sonnet high | opus medium | opus high |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
-| 메인 세션 Claude 권장 모델·effort | opus high | opus xhigh | opus xhigh | fable xhigh | fable max |
+| 일 | claude-lighter | claude-light | claude | claude-max |
+|---|---|---|---|---|
+| 어려운 일 | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
+| 깊은 리뷰 | opus medium | opus high | opus high | opus xhigh |
+| 코드·테스트·문서 작성 | opus medium | opus high | opus high | opus xhigh |
+| 일반 작업 | sonnet medium | opus medium | opus medium | opus xhigh |
+| 조사 | haiku max | sonnet high | opus medium | opus high |
+| 단순 작업 | haiku max | sonnet high | opus medium | opus high |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
 
 #### Claude와 GPT 워커 함께
 
-| 일 | hybrid-lightest | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
-|---|---|---|---|---|---|
-| 어려운 일 | opus high | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| 중요한 변경의 깊은 리뷰 | opus medium | opus medium | opus high | opus high | opus xhigh |
-| 코드·테스트·문서 작성 | terra xhigh | sol high | sol high | sol xhigh | astra xhigh |
-| 일반 작업 | terra high | terra xhigh | terra xhigh | sol high | sol max |
-| 조사 | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| 단순 작업 | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
-| 메인 세션 Claude 권장 모델·effort | opus high | opus xhigh | opus xhigh | fable xhigh | fable max |
+| 일 | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
+|---|---|---|---|---|
+| 어려운 일 | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
+| 깊은 리뷰 | opus medium | opus high | opus high | opus xhigh |
+| 코드·테스트·문서 작성 | sol high | sol high | sol xhigh | astra xhigh |
+| 일반 작업 | terra xhigh | terra xhigh | sol high | sol max |
+| 조사 | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| 단순 작업 | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
 
 #### GPT 워커만 사용
 
-| 일 | codex-lightest | codex-lighter | codex-light | codex | codex-max |
-|---|---|---|---|---|---|
-| 어려운 일 | sol high | sol xhigh | sol max | astra xhigh | astra max |
-| 중요한 변경의 깊은 리뷰 | sol high | sol xhigh | sol xhigh | sol max | astra max |
-| 코드·테스트·문서 작성 | terra xhigh | sol high | sol high | sol xhigh | astra xhigh |
-| 일반 작업 | terra high | terra xhigh | terra xhigh | sol high | sol max |
-| 조사 | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| 단순 작업 | luna high | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna high | luna xhigh | terra xhigh | sol xhigh | astra max |
-| 메인 세션 Claude 권장 모델·effort | opus high | opus xhigh | opus xhigh | fable xhigh | fable max |
+| 일 | codex-lighter | codex-light | codex | codex-max |
+|---|---|---|---|---|
+| 어려운 일 | sol xhigh | sol max | astra xhigh | astra max |
+| 깊은 리뷰 | sol xhigh | sol xhigh | sol max | astra max |
+| 코드·테스트·문서 작성 | sol high | sol high | sol xhigh | astra xhigh |
+| 일반 작업 | terra xhigh | terra xhigh | sol high | sol max |
+| 조사 | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| 단순 작업 | luna xhigh | terra medium | terra xhigh | sol xhigh |
+| Computer Use | luna xhigh | terra xhigh | sol xhigh | astra max |
+| 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
 
-Codex의 `$worker`는 `codex-lightest`, `codex-lighter`, `codex-light`, `codex`(기본값), `codex-max` 다섯 설정과 `none`만 받고, Codex 자체 서브에이전트에게 일을 맡긴다. 속도 옵션은 없다.
+Codex의 `$worker`는 `codex-lighter`, `codex-light`, `codex`(기본값), `codex-max`, `none`을 받는다. Codex 자체 서브에이전트에게 일을 맡긴다. 속도 옵션은 없다.
 
 ### 작업 배정 바꾸기
 
@@ -126,6 +129,20 @@ Codex의 `$worker`는 `codex-lightest`, `codex-lighter`, `codex-light`, `codex`(
 - 워커가 실패하면 Claude가 실패를 알린다. 알리지 않고 다른 워커에게 넘기거나 직접 처리하지 않는다.
 - GPT 워커는 백그라운드에서 `codex exec`로 실행된다. 실행마다 `.temp_files/subcodex/` 아래에 폴더가 생기고 프롬프트, 로그, 마지막 메시지가 남는다.
 - Codex 사용량 한도에 걸리면 새 작업 실행을 멈추고 대기한다. 한도가 풀리면 같은 실행 명령으로 이어 갈 수 있다.
+
+### 코드 변경 리뷰
+
+Claude는 코드 변경을 끝냈다고 알리기 전에 그 코드를 작성하지 않은 워커에게 리뷰를 맡긴다. 일반 작업 워커가 가벼운 리뷰를 한다. 깊은 리뷰가 필요한 변경에는 표의 깊은 리뷰 워커를 쓴다. 단순 작업에 해당하는 수정과 문서만 바꾸는 작업에는 리뷰가 필요하지 않다.
+
+리뷰 워커에게는 요구사항과 diff를 전달한다. Claude가 의심하는 부분은 전달하지 않는다. 워커는 [review-guide.md](.claude/skills/worker/review-guide.md)를 따라 변경 내용과 주변 코드를 읽는다. Codex 버전도 `.claude/skills/worker/review-guide.md`를 따른다.
+
+가벼운 리뷰에서는 주석과 코드의 단순함을 살핀다. 버그 수정에는 버그를 재현하는 테스트가 있는지 확인한다. 새 동작에는 이를 확인하는 테스트가 있는지 살핀다. 변경 때문에 설명이 틀린 문서도 함께 고쳤는지 확인한다. 깊은 리뷰에서는 변경된 코드를 호출하는 곳과 테스트까지 읽는다. 요구사항대로 동작하는지, 되돌리기 어려운 실수가 있는지, 테스트가 변경한 동작을 입증하는지도 확인한다.
+
+주석은 프로젝트 루트의 `AGENTS.md`에 있는 `## Comments` 절을 기준으로 판단한다. 이 절을 준비하는 방법은 [설치 안내](#agentsmd와-claudemd-선택)에 있다.
+
+리뷰 워커는 파일을 고치거나 상태를 바꾸는 명령을 실행하지 않는다. 기존 린터·타입 검사·테스트가 잡지 못하는 문제만 보고한다. 발견한 문제마다 파일과 위치, 문제가 생기는 조건을 적는다. 반드시 고쳐야 할 문제를 먼저 보고한다. 검토한 주석별 판단과 이유, 확인하지 못한 내용도 보고한다.
+
+Claude는 리뷰에서 나온 문제를 하나씩 고친다. 받아들이지 않는 문제에는 그 이유를 적는다. 고치면서 지적받은 범위를 넘어서는 로직을 추가했다면 고친 줄만 워커에게 한 번 더 리뷰를 맡긴다. 추가 리뷰는 거기서 마친다. Claude는 리뷰에서 나온 문제 수와 고친 문제 수, 받아들이지 않은 문제 수를 보고한다. 받아들이지 않은 문제와 그 이유, 남은 문제도 보고한다.
 
 ### 메인 에이전트의 모델
 
@@ -212,7 +229,7 @@ context-doc을 쓰려면 프로젝트의 Python 환경에 `tiktoken`을 설치�
 
 Python 3.14와 프로젝트 루트의 `.venv`가 필요하다. worker 스크립트는 Python 3.14 문법을 쓰며 표준 라이브러리만 사용한다.
 
-GPT 워커를 쓰려면 codex CLI가 PATH에 있고 로그인돼 있어야 한다. 프로젝트는 git 저장소여야 한다. `codex exec`는 git 저장소 밖에서는 실행되지 않는다. `claude`와 `claude-light`는 Computer Use를 쓰지 않으면 codex 없이도 동작한다.
+GPT 워커를 쓰려면 codex CLI가 PATH에 있고 로그인돼 있어야 한다. 프로젝트는 git 저장소여야 한다. `codex exec`는 git 저장소 밖에서는 실행되지 않는다. `claude` 계열의 모든 설정은 Computer Use를 쓰지 않으면 codex 없이도 동작한다.
 
 스킬을 복사한 뒤 qbpowers 폴더에서 Claude 워커용 에이전트 파일도 복사한다.
 
@@ -250,6 +267,7 @@ cp .claude/agents/general-purpose.md /path/to/project/.claude/agents/
 [AGENTS.md](AGENTS.md)와 [CLAUDE.md](CLAUDE.md)는 개인 프로젝트에서 에이전트에게 주는 규칙이다. 스킬 설치에는 필요하지 않다. 필요한 규칙만 자신의 프로젝트에 반영한다.
 
 - AGENTS.md는 임시 파일을 `.temp_files/`에 두게 한다. worker가 쓰는 디렉터리와 같다.
+- worker의 리뷰 워커는 AGENTS.md의 `## Comments` 절을 기준으로 주석을 판단한다. 프로젝트의 `AGENTS.md`에 이 절이 없으면 이 저장소의 `## Comments` 절을 복사해 넣는다.
 - CLAUDE.md는 Claude가 서브에이전트에 이름을 붙이지 못하게 한다. 내 환경에서는 이름 붙인 서브에이전트가 지정한 effort를 무시했고, 결과도 4,000자에서 잘려서 돌아왔다.
 
 프로젝트에 두 파일이 함께 있으면 Claude Code는 기본적으로 `CLAUDE.md`만 읽는다. 둘 다 읽게 하려면 `/config`에서 "Project instructions"를 `claude-md-and-agents-md`로 바꾼다. 이 값은 사용자 설정, 관리자가 정한 설정, `--settings`로 지정한 파일에서 읽는다. 프로젝트나 로컬 설정에 넣어도 적용되지 않는다.

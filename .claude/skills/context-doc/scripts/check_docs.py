@@ -386,7 +386,7 @@ def check_rule_block(project: Path, rules: Path = RULES_FILE) -> list[Problem]:
         return [Problem(RULES, f"no `{RULES_HEADING}` section", agents)]
     section = numbered_content(lines[block.start : block.stop], block.start + 1)
     expected = numbered_content(read_lines(rules), 1)
-    for (number, actual), (rules_number, wanted) in zip(section, expected):
+    for (number, actual), (rules_number, wanted) in zip(section, expected, strict=False):
         if actual != wanted:
             return [Problem(RULES, f"differs from {rules} line {rules_number}: {wanted}", agents, number)]
     if len(section) > len(expected):
