@@ -19,7 +19,7 @@ from launch_codex import RUN_RULES, launch
 from normalize_schema import normalize_file
 
 ROOT = Path(__file__).resolve().parents[4]
-MODELS = {"astra": "gpt-6-astra", "sol": "gpt-6.1-sol", "luna": "gpt-6-luna", "terra": "gpt-6.1-terra"}
+MODELS = {"astra": "gpt-6.2-astra", "sol": "gpt-6.2-sol", "luna": "gpt-6-luna", "terra": "gpt-6.1-terra"}
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
 STATUSES: tuple[Status, ...] = ("OK", "FAILED", "STALLED", "RUNNING", "QUEUED")
 CONTINUE_TEXT = "Continue and finish the task.\n"

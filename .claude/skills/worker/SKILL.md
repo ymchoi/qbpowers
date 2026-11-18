@@ -1,6 +1,6 @@
 ---
 name: worker
-description: Choose the workers this session delegates to. Usage /worker [COLUMN [fast|ultrafast] | none], where COLUMN is claude, hybrid or codex, optionally with -lighter, -light or -max; default codex.
+description: Choose the workers this session delegates to. Usage /worker [COLUMN [fast|ultrafast] | none], where COLUMN is claude or codex, optionally with -lighter, -light or -max; default codex.
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,7 @@ Until the session ends, delegate work by the column this invocation selects. The
 - `/worker <column>`: that column of the tables below. `/worker` alone selects `codex`.
 - `/worker none`: start no workers, Claude or GPT, and do all the work yourself. Workers already running finish; take their results.
 
-`fast` or `ultrafast` after a hybrid or codex column puts that column's GPT workers on service tier `priority` or `ultrafast`. Otherwise, and in every claude column, GPT workers run at standard speed.
+`fast` or `ultrafast` after a codex column puts that column's GPT workers on service tier `priority` or `ultrafast`. Otherwise, and in every claude column, GPT workers run at standard speed.
 
 Kinds of work:
 
@@ -31,29 +31,19 @@ Kinds of work:
 | General | sonnet medium | opus medium | opus medium | opus xhigh |
 | Research | haiku max | sonnet high | opus medium | opus high |
 | Simple | haiku max | sonnet high | opus medium | opus high |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
-
-| Work | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
-|---|---|---|---|---|
-| Hard | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| Deep Review | opus medium | opus high | opus high | opus xhigh |
-| Writing | sol high | sol high | sol xhigh | astra xhigh |
-| General | terra xhigh | terra xhigh | sol high | sol max |
-| Research | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Simple | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 
 | Work | codex-lighter | codex-light | codex | codex-max |
 |---|---|---|---|---|
 | Hard | sol xhigh | sol max | astra xhigh | astra max |
-| Deep Review | sol xhigh | sol xhigh | sol max | astra max |
-| Writing | sol high | sol high | sol xhigh | astra xhigh |
-| General | terra xhigh | terra xhigh | sol high | sol max |
-| Research | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Simple | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | astra max |
+| Deep Review | sol high | sol xhigh | sol max | astra xhigh |
+| Writing | terra high | sol medium | sol xhigh | astra xhigh |
+| General | terra high | sol medium | sol xhigh | astra xhigh |
+| Research | terra medium | terra high | sol medium | astra high |
+| Simple | terra medium | terra high | sol medium | astra high |
+| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
 
-`opus`, `sonnet`, `haiku` and `fable` are Claude subagents; `astra` (`gpt-6-astra`), `sol` (`gpt-6.1-sol`), `terra` (`gpt-6.1-terra`) and `luna` (`gpt-6-luna`) run through codex. The word after the model is its effort. Computer Use always runs through codex, in the claude columns too.
+`opus`, `sonnet`, `haiku` and `fable` are Claude subagents; `astra` (`gpt-6.2-astra`), `sol` (`gpt-6.2-sol`) and `terra` (`gpt-6.1-terra`) run through codex. The word after the model is its effort. Computer Use always runs through codex, in the claude columns too.
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
 
@@ -72,7 +62,7 @@ Run codex with the scripts in `.claude/skills/worker/scripts/`, using the repo `
 1. `new_workdir.py [COUNT]` prints COUNT new work dirs.
 2. Write each task to `<WORK>/prompt.txt`. For a JSON result, add `<WORK>/schema.json`.
 3. Hand the work dirs to one waiter in the background (`run_in_background: true`):
-   `wait_codex.py --model <astra|sol|terra|luna> --effort <effort> [--service-tier <tier>] <WORK>...`
+   `wait_codex.py --model <astra|sol|terra> --effort <effort> [--service-tier <tier>] <WORK>...`
    Add `--workroot <DIR>` when codex must work outside the repo root, such as in a worktree. Add `--cap N` (runs at once, default 64), `--launch-gap S` (seconds between starts) or `--retries N` (fresh restarts of a run that failed for good) when the user asks for them.
    Never give one work dir to two waiters, and never stop a waiter's background task: that also kills the codex runs it started. To act on each run as it ends, give each its own waiter.
 4. Act on the summary:

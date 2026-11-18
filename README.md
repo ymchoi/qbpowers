@@ -1,71 +1,55 @@
 # qbpowers
 
-매일 쓰는 스킬 다섯 개와 스킬이 쓰는 에이전트 파일을 모아 둔 저장소다. 각 스킬에는 Claude Code용과 Codex용이 있다. 필요한 것만 골라 자기 프로젝트에 복사해 쓴다.
+매일 쓰는 스킬을 모아 둔 저장소다. 각 스킬에는 Claude Code용과 Codex용이 있다. 필요한 것만 골라 자기 프로젝트에 복사해 써라.
 
 | 스킬 | 하는 일 |
 |---|---|
-| [worker](#worker) | Claude가 작업을 나누어 다른 에이전트에게 맡긴다. |
-| [context-doc](#context-doc) | 대화 내용이 압축된 뒤에도 에이전트가 작업을 이어 가도록 프로젝트 문서를 관리한다. |
+| [worker](#worker) | 메인 에이전트가 작업을 나누어 다른 에이전트에게 맡긴다. |
+| [context-doc](#context-doc) | 대화 내용이 압축된 뒤에도 에이전트가 작업을 이어 가도록 자동으로 프로젝트 문서를 관리한다. |
 | [freeze](#freeze) | `.temp_files/` 밖의 파일을 만들거나 고치거나 지우지 못하게 한다. |
-| [grill-me](#grill-me) | 하려는 일을 Claude가 제대로 이해할 때까지 사용자에게 한 번에 하나씩 질문한다. |
-| [wait-what](#wait-what) | 직전 답변을 쉬운 한국어로 다시 설명한다. |
+| [grill-me](#grill-me) | 사용자가 하려는 일을 에이전트가 제대로 이해할 때까지 사용자에게 한 번에 하나씩 질문한다. |
+| [wait-what](#wait-what) | 직전 답변을 쉬운 한국어로 다시 설명하도록 한다. |
 
 스킬은 명령을 직접 입력할 때만 실행된다. 아래 사용 예는 Claude Code 기준이다. Codex에서는 `$<skill>`로 호출한다.
 
 ```
-.claude/skills/        Claude Code 스킬 다섯 개
-.codex/skills/         Codex 스킬 다섯 개
-.claude/agents/        worker-effort-*.md (Claude Code의 worker에 필요), general-purpose.md (선택)
-AGENTS.md, CLAUDE.md   개인 프로젝트에서 쓰는 규칙. 참고용이다
+AGENTS.md, CLAUDE.md   개인 프로젝트에서 쓰는 규칙. 참고용이다. 위의 스킬들과 함께 쓰면 좋다.
 ```
 
 설치는 [아래 안내](#설치)를 따른다.
 
 ## worker
 
-`/worker`를 입력하면 Claude는 세션이 끝날 때까지 일을 워커에게 맡긴다. Claude는 사용자와 대화하며 일을 조율하고, 워커가 실제 작업을 한다.
+`/worker`를 입력하면 Claude 메인 에이전트는 세션이 끝날 때까지 일을 적절하게 워커에게 맡긴다. Claude는 사용자와 대화하며 일을 조율하고, 워커가 실제 작업을 한다.
 
-Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT 워커는 codex CLI로 실행하는 `astra`(`gpt-6-astra`), `sol`(`gpt-6.1-sol`), `terra`(`gpt-6.1-terra`), `luna`(`gpt-6-luna`)다. effort는 모델이 얼마나 깊이 생각할지 정하는 설정이다. 화면을 조작하는 Computer Use는 GPT 워커에게만 맡긴다.
+Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT 워커는 codex CLI로 비대화형으로 실행하는 `astra`(`gpt-6.2-astra`), `sol`(`gpt-6.2-sol`), `terra`(`gpt-6.1-terra`)다. 화면을 조작하는 Computer Use는 GPT 워커에게만 맡긴다.
 
 ### 워커 선택
 
-`/worker` 뒤에는 `claude`, `hybrid`, `codex` 중 한 계열을 적는다. 계열 이름에 `-lighter`, `-light`, `-max`를 붙이면 단계를 바꾼다. 붙이지 않으면 그 계열의 기본 단계를 쓴다. `/worker`만 입력하면 `codex`를 쓴다.
+`/worker` 뒤에는 `claude`나 `codex` 중 한 계열을 적는다. 계열 이름에 `-lighter`, `-light`, `-max`를 붙이면 단계를 바꾼다. 붙이지 않으면 그 계열의 기본 단계를 쓴다. `/worker`만 입력하면 `codex`를 쓴다. 권장하는 설정도 `codex`다.
 
 ```
-/worker              # /worker codex와 같다
+/worker # /worker codex와 같다
 /worker claude-lighter
 /worker claude-light
 /worker claude
 /worker claude-max
-/worker hybrid-lighter [fast|ultrafast]
-/worker hybrid-light [fast|ultrafast]
-/worker hybrid [fast|ultrafast]
-/worker hybrid-max [fast|ultrafast]
 /worker codex-lighter [fast|ultrafast]
 /worker codex-light [fast|ultrafast]
-/worker codex [fast|ultrafast]
+/worker codex [fast|ultrafast] # 이것을 사용하는 것을 추천한다.
 /worker codex-max [fast|ultrafast]
-/worker none
+/worker none # 워커를 사용하지 않는다. Claude가 워커를 쓰지 않고 메인 에이전트에서 직접 일한다.
 ```
 
-- `claude` 계열은 Computer Use를 제외한 모든 일에 Claude 워커를 쓴다.
-- `hybrid` 계열은 어려운 일과 깊은 리뷰를 Claude 워커에게 맡긴다. 나머지는 GPT 워커에게 맡긴다.
-- `codex` 계열은 모든 일에 GPT 워커를 쓴다.
-- `none`은 새 워커를 실행하지 않는다. Claude가 직접 일한다. 이미 실행 중인 워커는 맡은 일을 마친다.
+각 계열에는 `lighter`, `light`, 기본, `max`의 네 단계가 있다. 가벼운 단계에서는 작은 모델을 더 많이 쓰거나 effort를 낮춘다. 높은 단계로 갈수록 큰 모델이나 높은 effort를 더 많이 쓴다. 
 
-각 계열에는 `lighter`, `light`, 기본, `max`의 네 단계가 있다. 가벼운 단계에서는 작은 모델을 더 많이 쓰거나 effort를 낮춘다. 높은 단계로 갈수록 큰 모델이나 높은 effort를 더 많이 쓴다. 모든 작업의 모델과 effort가 단계마다 바뀌는 것은 아니다. 예를 들어 `claude-light`와 `claude`는 작성에 모두 `opus high`를 쓴다. `max`도 모든 작업에 같은 모델이나 `max` effort를 쓰지는 않는다.
-
-`hybrid`와 `codex` 계열의 모든 설정 뒤에는 `fast`나 `ultrafast` 중 하나를 붙일 수 있다. 위 예에서 `[fast|ultrafast]`는 둘 중 하나를 고르거나 생략한다는 뜻이다. `fast`는 GPT 워커의 서비스 티어를 `priority`로 정한다. `ultrafast`는 서비스 티어를 `ultrafast`로 정한다. 생략하면 표준 속도로 실행한다. `claude` 계열은 속도 옵션을 받지 않으며, Computer Use용 GPT 워커도 표준 속도로 실행한다.
-
-```
-/worker hybrid fast
-```
+`codex` 계열의 모든 설정 뒤에는 `fast`나 `ultrafast` 중 하나를 붙일 수 있다. 생략하면 표준 속도로 실행한다. `claude` 계열은 속도 옵션을 받지 않는다.
 
 설정은 세션이 끝날 때까지 유지된다. 마지막으로 입력한 `/worker`가 적용된다.
 
 ### 작업별 모델과 effort
 
-사용자가 설정을 고르면 Claude는 그 설정에서 작업 종류에 맞는 모델과 effort를 고른다. 예를 들어 `hybrid`에서는 코드 작성에 `sol xhigh`, 버그 재현에 `sol high`를 쓴다.
+사용자가 worker 스킬을 실행하면 그 후로는 Claude는 워커에게 시킬 작업 종류에 맞는 모델과 effort를 고른다.
 
 무엇을 해야 할지 아직 모르는 일은 어려운 일로 본다. 원인을 모르는 버그나 설계·구조 결정이 여기에 속한다. 실행한 뒤 되돌리는 데 큰 비용이 드는 일도 여기에 속한다.
 
@@ -74,8 +58,6 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 코드·테스트·문서를 쓰거나 고치는 일은 작성으로 본다. 이미 정한 설계를 구현하는 일은 여러 모듈을 고쳐도 작성에 속한다. 일반 작업은 범위가 정해져 있고 그 안에서 판단하는 일이다. 버그 재현, 간단한 진단, 측정, 일상적인 점검, 코드 변경의 가벼운 리뷰가 여기에 속한다.
 
 해석할 여지가 없는 일은 단순 작업으로 본다. 찾기와 읽기, 목록 만들기, 테스트 실행과 결과 보고, 한두 파일의 내용이 정해진 수정, 기계적인 반복이 여기에 속한다. 조사는 웹 검색과 외부 문서·오픈소스 조사를 말한다. Computer Use는 한 번에 하나만 실행한다.
-
-모델 이름 뒤에 effort를 적는다. `opus xhigh`는 Opus 워커를 xhigh effort로 쓴다는 뜻이다.
 
 #### Claude 워커 중심
 
@@ -87,72 +69,31 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 | 일반 작업 | sonnet medium | opus medium | opus medium | opus xhigh |
 | 조사 | haiku max | sonnet high | opus medium | opus high |
 | 단순 작업 | haiku max | sonnet high | opus medium | opus high |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
-| 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
-
-#### Claude와 GPT 워커 함께
-
-| 일 | hybrid-lighter | hybrid-light | hybrid | hybrid-max |
-|---|---|---|---|---|
-| 어려운 일 | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| 깊은 리뷰 | opus medium | opus high | opus high | opus xhigh |
-| 코드·테스트·문서 작성 | sol high | sol high | sol xhigh | astra xhigh |
-| 일반 작업 | terra xhigh | terra xhigh | sol high | sol max |
-| 조사 | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| 단순 작업 | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | sol xhigh |
+| Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 | 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
 
 #### GPT 워커만 사용
 
-| 일 | codex-lighter | codex-light | codex | codex-max |
+| 일 | codex-lighter | codex-light | codex (추천) | codex-max |
 |---|---|---|---|---|
 | 어려운 일 | sol xhigh | sol max | astra xhigh | astra max |
-| 깊은 리뷰 | sol xhigh | sol xhigh | sol max | astra max |
-| 코드·테스트·문서 작성 | sol high | sol high | sol xhigh | astra xhigh |
-| 일반 작업 | terra xhigh | terra xhigh | sol high | sol max |
-| 조사 | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| 단순 작업 | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | astra max |
+| 깊은 리뷰 | sol high | sol xhigh | sol max | astra xhigh |
+| 코드·테스트·문서 작성 | terra high | sol medium | sol xhigh | astra xhigh |
+| 일반 작업 | terra high | sol medium | sol xhigh | astra xhigh |
+| 조사 | terra medium | terra high | sol medium | astra high |
+| 단순 작업 | terra medium | terra high | sol medium | astra high |
+| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
 | 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
-
-Codex의 `$worker`는 `codex-lighter`, `codex-light`, `codex`(기본값), `codex-max`, `none`을 받는다. Codex 자체 서브에이전트에게 일을 맡긴다. 속도 옵션은 없다.
-
-### 작업 배정 바꾸기
-
-기본 배정을 바꾸려면 [worker의 SKILL.md](.claude/skills/worker/SKILL.md)에 있는 표를 고친다. 작업 종류의 자세한 기준도 이 파일에 있다. 대화창에 원하는 배정표를 붙여 넣으면 다음 `/worker`를 입력할 때까지 그 표를 쓴다. `astra`, `sol`, `terra`, `luna`가 가리키는 모델 이름은 [wait_codex.py](.claude/skills/worker/scripts/wait_codex.py) 맨 위에 있다.
-
-### 작업을 맡기는 방식
-
-- 동시에 진행해도 문제없는 일은 Claude가 여러 워커에게 나누어 맡긴다.
-- 워커가 결정 없이는 더 나아갈 수 없으면 Claude에게 묻는다. 답을 받으면 멈춘 곳에서 이어 간다.
-- 워커가 실패하면 Claude가 실패를 알린다. 알리지 않고 다른 워커에게 넘기거나 직접 처리하지 않는다.
-- GPT 워커는 백그라운드에서 `codex exec`로 실행된다. 실행마다 `.temp_files/subcodex/` 아래에 폴더가 생기고 프롬프트, 로그, 마지막 메시지가 남는다.
-- Codex 사용량 한도에 걸리면 새 작업 실행을 멈추고 대기한다. 한도가 풀리면 같은 실행 명령으로 이어 갈 수 있다.
-
-### 코드 변경 리뷰
-
-Claude는 git이 무시하지 않는 코드를 바꾸면 끝냈다고 알리기 전에 그 코드를 작성하지 않은 워커에게 리뷰를 맡긴다. 새로 만든 파일도 리뷰 대상이다. `.temp_files/` 안의 일회용 코드처럼 git이 무시하는 코드는 리뷰하지 않는다. 일반 작업 워커가 가벼운 리뷰를 한다. 깊은 리뷰가 필요한 변경에는 표의 깊은 리뷰 워커를 쓴다. 단순 작업에 해당하는 수정과 문서만 바꾸는 작업에는 리뷰가 필요하지 않다.
-
-리뷰 워커에게는 요구사항과 이번 작업에서 바꾼 파일만의 diff를 넘긴다. 새로 만든 파일도 diff에 넣는다. Claude가 의심하는 부분은 넘기지 않는다. 리뷰 종류에 맞는 가이드 파일의 경로도 함께 준다. 가벼운 리뷰는 [review-light.md](.claude/skills/worker/review-light.md)를, 깊은 리뷰는 [review-deep.md](.claude/skills/worker/review-deep.md)를 따른다. Claude는 가이드 내용을 지시문에 옮겨 적지 않는다. Codex 버전도 `.claude/skills/worker/`에 있는 같은 두 파일을 쓴다.
-
-가벼운 리뷰에서는 주석과 코드의 단순함을 살핀다. 버그 수정에는 버그를 재현하는 테스트가 있는지 확인한다. 새 동작에는 이를 확인하는 테스트가 있는지 살핀다. 변경 때문에 설명이 틀린 문서도 함께 고쳤는지 확인한다. 깊은 리뷰에서는 가벼운 리뷰를 모두 한 뒤 변경된 코드를 호출하는 곳과 테스트까지 읽는다. 요구사항대로 동작하는지, 되돌리기 어려운 실수가 있는지, 테스트가 변경한 동작을 입증하는지도 확인한다.
-
-주석은 프로젝트 루트의 `AGENTS.md`에 있는 `## Comments` 절을 기준으로 판단한다. 이 절을 준비하는 방법은 [설치 안내](#agentsmd와-claudemd-선택)에 있다.
-
-리뷰 워커는 파일을 고치거나 상태를 바꾸는 명령을 실행하지 않는다. 기존 린터·타입 검사·테스트가 잡지 못하는 문제만 보고한다. 발견한 문제마다 파일과 위치, 문제가 생기는 조건을 적는다. 반드시 고쳐야 할 문제를 먼저 보고한다. 검토한 주석별 판단과 이유, 확인하지 못한 내용도 보고한다.
-
-Claude는 리뷰에서 나온 문제를 하나씩 고친다. 받아들이지 않는 문제에는 그 이유를 적는다. 고치면서 지적받은 범위를 넘어서는 로직을 추가했다면 고친 줄만 워커에게 한 번 더 리뷰를 맡긴다. 추가 리뷰는 거기서 마친다. Claude는 리뷰에서 나온 문제 수와 고친 문제 수, 받아들이지 않은 문제 수를 보고한다. 받아들이지 않은 문제와 그 이유, 남은 문제도 보고한다.
 
 ### 메인 에이전트의 모델
 
-메인 에이전트는 사용자와 대화하는 Claude다. 각 표 마지막의 '메인 세션 Claude 권장 모델·effort'는 이 메인 에이전트를 위한 추천이다. 워커에 배정되는 모델이 아니며 꼭 따라야 하는 조건도 아니다. 메인 에이전트는 주로 일을 조율하므로 워커보다 토큰을 훨씬 적게 쓴다. 어느 계열이든 같은 단계에는 같은 메인 모델과 effort를 권한다.
+메인 에이전트는 사용자와 대화하는 Claude다. 각 표 마지막의 '메인 세션 Claude 권장 모델·effort'는 이 메인 에이전트를 위한 추천이다. 워커에 배정되는 모델이 아니며 꼭 따라야 하는 조건도 아니다. 메인 에이전트는 주로 일을 조율하므로 워커보다 토큰을 훨씬 적게 쓴다.
 
 ## context-doc
 
 대화 내용이 압축돼도 작업을 이어 갈 수 있도록 Claude가 프로젝트 문서를 관리한다. 한 번 켜 두면 따로 시키지 않아도 Claude가 알아서 한다. 작업 중에 바뀐 규칙과 결정을 문서에 반영한다. 끝난 일은 진행 상황에서 지운다. 문서가 정해진 크기를 넘으면 줄이거나 나눈다.
 
-문서는 영어로 쓴다. 기존 한국어 문서를 정리할 때도 영어로 옮기고, 영어로 쓰면 뜻이 틀리거나 모호해지는 곳만 한국어로 남긴다.
+문서는 영어로 관리된다. 기존 한국어 문서를 정리할 때도 영어로 옮기고, 영어로 쓰면 뜻이 틀리거나 모호해지는 곳만 한국어로 남긴다.
 
 ```
 /context-doc <project path>
@@ -205,21 +146,7 @@ Claude는 질문마다 추천 답과 짧은 이유를 제시한다. 추천할 �
 
 ### 스킬 복사
 
-Claude Code나 Codex를 설치하고 로그인한 뒤 진행한다. Claude Code용은 `.claude/skills/<skill>/`을 프로젝트의 `.claude/skills/`에 복사한다. Codex용은 `.codex/skills/<skill>/`을 프로젝트의 `.codex/skills/`에 복사한다.
-
-아래 예는 두 버전을 모두 복사한다. `/path/to/project`는 사용할 프로젝트의 실제 경로로 바꾼다. 필요한 스킬만 설치하려면 반복문의 스킬 목록을 줄인다.
-
-```sh
-git clone https://github.com/ymchoi/qbpowers.git
-cd qbpowers
-mkdir -p /path/to/project/.claude/skills /path/to/project/.codex/skills
-for skill in worker context-doc freeze grill-me wait-what; do
-    cp -R ".claude/skills/$skill" /path/to/project/.claude/skills/
-    cp -R ".codex/skills/$skill" /path/to/project/.codex/skills/
-done
-```
-
-freeze, grill-me, wait-what은 복사만 하면 쓸 수 있다. 이 세 스킬의 Claude Code용은 `~/.claude/skills/`에 두면 모든 프로젝트에서 쓸 수 있다.
+본인이 쓰는 에이전트에게 이 저장소를 알려주고, 본인의 환경에 맞게 설치해달라고 부탁하자. 요새는 다 이렇게 한다.
 
 ### context-doc의 Python 환경
 

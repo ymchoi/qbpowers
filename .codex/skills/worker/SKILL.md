@@ -23,14 +23,14 @@ Kinds of work:
 | Work | codex-lighter | codex-light | codex | codex-max |
 |---|---|---|---|---|
 | Hard | sol xhigh | sol max | astra xhigh | astra max |
-| Deep Review | sol xhigh | sol xhigh | sol max | astra max |
-| Writing | sol high | sol high | sol xhigh | astra xhigh |
-| General | terra xhigh | terra xhigh | sol high | sol max |
-| Research | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Simple | luna xhigh | terra medium | terra xhigh | sol xhigh |
-| Computer Use | luna xhigh | terra xhigh | sol xhigh | astra max |
+| Deep Review | sol high | sol xhigh | sol max | astra xhigh |
+| Writing | terra high | sol medium | sol xhigh | astra xhigh |
+| General | terra high | sol medium | sol xhigh | astra xhigh |
+| Research | terra medium | terra high | sol medium | astra high |
+| Simple | terra medium | terra high | sol medium | astra high |
+| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
 
-`astra` is `gpt-6-astra`, `sol` is `gpt-6.1-sol`, `terra` is `gpt-6.1-terra` and `luna` is `gpt-6-luna`; the word after the model is its `reasoning_effort`. Service tier follows the parent session; this skill has no speed option.
+`astra` is `gpt-6.2-astra`, `sol` is `gpt-6.2-sol` and `terra` is `gpt-6.1-terra`; the word after the model is its `reasoning_effort`. Service tier follows the parent session; this skill has no speed option.
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
 
