@@ -1,3 +1,4 @@
 - Project rules in `AGENTS.md` override Claude Code's defaults, including the session scratchpad for temporary files and the bypass-mode allowance to edit files with `sed` or heredocs.
+- Act only on an explicit command to act. Treat everything else the user says, questions, opinions and suggestions included, as discussion: answer it and change nothing, except under `.temp_files/`.
 - If `WebFetch` or the `web-fetch` agent truncates a page, refuses a domain (`robots.txt`) or hits a 403/402 bot block, do not conclude anything from the result or quietly switch sources. Download the page with `curl -L -o` into `.temp_files/` and read it fully with `Read`.
 - Do not pass `name` when you spawn a subagent: a named one ignores the `effort` argument, and its result reaches you cut at 4,000 characters.

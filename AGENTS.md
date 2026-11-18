@@ -11,13 +11,11 @@
 - Commit only when the user asks.
 
 ## Interpreting and Answering User Requests
-- Act only on an explicit command to act. Treat everything else the user says, questions, opinions and suggestions included, as discussion: answer it and change nothing, except under `.temp_files/`.
 - If a request seems mistaken or a simpler approach exists, say so briefly, with the reason.
 - Before answering about a symptom the user describes, check the relevant facts with tools.
 
 ## Code Changes
 - If a design defect within the task's scope would force a workaround, fix the defect instead, sized to its real impact.
-- Keep designs as simple as the requirement allows; do not write 200 lines where 50 will do.
 - Do not add handling for cases that are very unlikely to happen, or just-in-case options, abstractions, fallbacks, exception handling or validation: over-engineering is itself a source of bugs. Validation at boundaries (user input, external APIs, file and queue messages) and handling of external failures that really occur are still required.
 - Do not add production code that behaves differently under test (for example, checks of a test environment variable, or bypasses taken only in tests). If code is hard to test, inject dependencies such as clocks, clients and paths through parameters or a `Protocol`, defaulting to production behavior.
 - Name tests and identifiers by behavior, not by review rounds or task IDs.
@@ -31,7 +29,7 @@
 ## Verification and Reporting
 - Before reporting a task as done, run the checks configured for each language you changed: formatter, linter and type checker, then the tests relevant to the change (Python: Ruff, mypy, pytest). If a check fails, fix the root cause instead of loosening or ignoring the check. If a check cannot run, report exactly what blocked it.
 - A check passes only when it ran everything it claims to check and all of it succeeded. Exit non-zero when any part fails, when nothing was checked, or when a required step was skipped.
-- For a bug fix, first add a test that reproduces the bug, where practical.
+- In code that git does not ignore, add a test for new behaviour, and for a bug fix first add a test that reproduces the bug, where practical.
 - Run tests headless when possible (for example, Playwright headless). Open OS windows only when the user allows it.
 - Report each check as passed, partially checked, failed or not run. Do not present a test on mock data as a real-environment test.
 - Read a worker's report that checks passed as covering only the checks that worker ran, and rerun the checks after merging the work.
