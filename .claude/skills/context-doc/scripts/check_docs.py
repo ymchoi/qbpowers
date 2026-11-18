@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Mechanical check of a project's documents under the context-doc rules.
-
-Usage: python check_docs.py <project directory>
-
-Prints token counts and the problems of each check; exits 1 when there is a problem, 0 otherwise.
-"""
 
 import argparse
 import os
@@ -44,7 +38,6 @@ TEMP_REFERENCE = re.compile(r"\.temp_files/[^\s`'\")\]|,;]+")
 TEMPORARY_PLAN_START = "Delete this file when"
 SHELL_INFOS = {"sh", "bash", "zsh", "shell", "console"}
 PLACEHOLDERS = ("<", ">", "*", "{", "$", "...", "(", "|")
-# A file named with a place in it: a line (`a.py:12`), a symbol (`a.py:main`) or a pytest node (`a.py::test_x`).
 LOCATION_SUFFIX = re.compile(r":[^/]*$")
 
 
@@ -72,6 +65,17 @@ def find_repo_root(project: Path) -> Path | None:
     return None
 
 
+def find_main_checkout(root: Path) -> Path | None:
+    git_file = root / ".git"
+    if not git_file.is_file():
+        return None
+    gitdir = root / git_file.read_text(encoding="utf-8").removeprefix("gitdir:").strip()
+    commondir = gitdir / "commondir"
+    if not commondir.is_file():
+        return None
+    return (gitdir / commondir.read_text(encoding="utf-8").strip()).resolve().parent
+
+
 def project_documents(project: Path) -> list[Path]:
     agents = project / "AGENTS.md"
     entry = [agents] if agents.is_file() else []
@@ -83,9 +87,8 @@ def read_lines(path: Path) -> list[str]:
 
 
 def fence_infos(lines: Sequence[str]) -> list[str | None]:
-    """Per line: None outside fenced code, else the block's info word in lower case ('' if none).
-
-    Fence lines count as inside the block.
+    """Return None for prose and the lowercase info word ('' if absent) for fenced lines.
+    Opening and closing fences belong to their block.
     """
     infos: list[str | None] = []
     fence: str | None = None
@@ -107,7 +110,6 @@ def fence_infos(lines: Sequence[str]) -> list[str | None]:
 
 
 def prose_lines(lines: Sequence[str]) -> Iterator[tuple[int, str]]:
-    """Yield (1-based number, line) for lines outside fenced code blocks."""
     for number, (line, info) in enumerate(zip(lines, fence_infos(lines), strict=True), start=1):
         if info is None:
             yield number, line
@@ -122,7 +124,6 @@ def without_code_spans(line: str) -> str:
 
 
 def rule_block_range(lines: Sequence[str]) -> range | None:
-    """0-based line indexes of the `## Document rules` section, heading included."""
     infos = fence_infos(lines)
     start = next(
         (i for i, line in enumerate(lines) if infos[i] is None and line.rstrip() == RULES_HEADING),
@@ -138,7 +139,6 @@ def rule_block_range(lines: Sequence[str]) -> range | None:
 
 
 def rendered_text(markup: str) -> str:
-    """Heading text as rendered: link and image text kept, HTML tags and emphasis stars dropped."""
     text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", markup)
     return re.sub(r"<[^>]+>", "", text).replace("*", "")
 
@@ -210,13 +210,12 @@ def count_tokens(documents: Sequence[Path]) -> dict[Path, int]:
 
 
 def read_budget(project: Path) -> tuple[int, list[Problem]]:
-    """The total budget, and a problem for each budget line that is not in the form the check reads."""
     agents = project / "AGENTS.md"
     budget = DEFAULT_BUDGET
     problems: list[Problem] = []
     if not agents.is_file():
         return budget, problems
-    for number, line, info in checked_lines(agents, project):
+    for number, line, info in lines_outside_rule_block(agents, project):
         if info is not None or not line.startswith(BUDGET_PREFIX):
             continue
         match = BUDGET_LINE.fullmatch(line.rstrip())
@@ -260,10 +259,6 @@ def check_document_table(project: Path) -> list[Problem]:
 
 
 def inbound_sources(project: Path, root: Path) -> list[Path]:
-    """Markdown files in the repository, tracked or untracked but not ignored.
-
-    Leaves out the project's documents, checked on their own, and its ref/ folder, whose files are kept as they are.
-    """
     listed = subprocess.run(
         ["git", "ls-files", "-co", "--exclude-standard", "-z"],
         cwd=root,
@@ -283,7 +278,6 @@ def is_project_document_path(target: Path, project: Path) -> bool:
 
 
 def check_links(project: Path, root: Path | None) -> list[Problem]:
-    """Links in the documents other than AGENTS.md (the document table check covers those), and inbound links."""
     agents = project / "AGENTS.md"
     problems = [
         problem
@@ -298,11 +292,7 @@ def check_links(project: Path, root: Path | None) -> list[Problem]:
     return problems
 
 
-def checked_lines(doc: Path, project: Path) -> Iterator[tuple[int, str, str | None]]:
-    """Yield (number, line, fence info) for the lines of a document, leaving out the rule block of AGENTS.md.
-
-    The rule block is a copy of rules.md, which the rule block check covers.
-    """
+def lines_outside_rule_block(doc: Path, project: Path) -> Iterator[tuple[int, str, str | None]]:
     lines = read_lines(doc)
     skipped = (rule_block_range(lines) if doc == project / "AGENTS.md" else None) or range(0)
     for index, (line, info) in enumerate(zip(lines, fence_infos(lines), strict=True)):
@@ -319,15 +309,15 @@ def is_missing_path(word: str, bases: Sequence[Path]) -> bool:
         return False
     path = LOCATION_SUFFIX.sub("", word)
     first = path.split("/", 1)[0]
-    # A path that starts with . or .. is relative to a place the text does not name, so it cannot be checked.
     if first in ("", ".", ".."):
         return False
+    if first == ".temp_files":
+        bases = [*bases, *(main for base in bases if (main := find_main_checkout(base)) is not None)]
     roots = [base for base in bases if (base / first).exists()]
     return bool(roots) and not any((base / path).exists() for base in roots)
 
 
 def missing_paths(text: str, bases: Sequence[Path]) -> list[str]:
-    """Paths named in text that do not exist. Text with whitespace is a command: each word is checked, options not."""
     words = [word.strip("'\"") for word in text.split() if not word.startswith("-")]
     return [word for word in words if is_missing_path(word, bases)]
 
@@ -336,7 +326,7 @@ def check_paths(project: Path, root: Path | None) -> list[Problem]:
     bases = [project] if root is None else [root, project]
     problems = []
     for doc in project_documents(project):
-        for number, line, info in checked_lines(doc, project):
+        for number, line, info in lines_outside_rule_block(doc, project):
             if info is None:
                 texts = code_spans(line)
             elif info in SHELL_INFOS:
@@ -350,7 +340,6 @@ def check_paths(project: Path, root: Path | None) -> list[Problem]:
 
 
 def may_refer_to_temp_files(doc: Path, project: Path) -> bool:
-    """Status and temporary plan documents may point at material of the work in progress."""
     if doc == project / "docs" / "status.md":
         return True
     return doc.parent == project / "docs" and doc.read_text(encoding="utf-8").startswith(TEMPORARY_PLAN_START)
@@ -361,13 +350,12 @@ def check_temp_paths(project: Path) -> list[Problem]:
         Problem(TEMP, "refers to a path under .temp_files/", doc, number)
         for doc in project_documents(project)
         if not may_refer_to_temp_files(doc, project)
-        for number, line, _ in checked_lines(doc, project)
+        for number, line, _ in lines_outside_rule_block(doc, project)
         if any(not is_placeholder(match.group(0)) for match in TEMP_REFERENCE.finditer(line))
     ]
 
 
 def numbered_content(lines: Sequence[str], first_number: int) -> list[tuple[int, str]]:
-    """(line number, line) pairs with trailing whitespace and leading and trailing blank lines dropped."""
     numbered = [(first_number + i, line.rstrip()) for i, line in enumerate(lines)]
     while numbered and not numbered[0][1]:
         numbered.pop(0)
@@ -398,8 +386,7 @@ def check_rule_block(project: Path, rules: Path = RULES_FILE) -> list[Problem]:
     return []
 
 
-def display(path: Path, project: Path) -> str:
-    # Forward slashes on every OS, the form documents use for paths.
+def relative_posix_path(path: Path, project: Path) -> str:
     return Path(os.path.relpath(path, project)).as_posix()
 
 
@@ -407,7 +394,7 @@ def format_report(
     project: Path, counts: dict[Path, int], budget: int, problems: Sequence[Problem], repo_found: bool
 ) -> str:
     out = [f"Project: {project}", ""]
-    names = [display(doc, project) for doc in counts]
+    names = [relative_posix_path(doc, project) for doc in counts]
     width = max([len("Total"), *map(len, names)])
     out.append(f"{'Document':<{width}}  {'Tokens':>7}")
     for name, tokens in zip(names, counts.values(), strict=True):
@@ -420,7 +407,7 @@ def format_report(
         found = [p for p in problems if p.check == check]
         out += ["", f"{number}. {check}: {'ok' if not found else f'{len(found)} problem(s)'}"]
         for problem in found:
-            where = "" if problem.file is None else display(problem.file, project)
+            where = "" if problem.file is None else relative_posix_path(problem.file, project)
             if problem.line is not None:
                 where += f":{problem.line}"
             out.append(f"  {where + ': ' if where else ''}{problem.message}")

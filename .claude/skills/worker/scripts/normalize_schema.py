@@ -1,20 +1,3 @@
-"""Rewrite a JSON Schema in place to OpenAI strict structured-output form.
-
-codex forwards --output-schema verbatim to the API as a strict:true response
-format, which rejects anything looser with HTTP 400 invalid_json_schema before
-any work runs. This enforces the two rules hand-written schemas most often
-miss, preserving semantics:
-
-- every object level gets "additionalProperties": false
-- every property key joins "required"; a formerly optional field becomes
-  required-but-nullable instead (null-unioned type / anyOf null branch; enum
-  member lists are null-extended as well)
-
-It is idempotent. It deliberately does NOT touch what it cannot fix faithfully
-(a non-object root, composition keywords like allOf/if/then, or a
-schema-valued additionalProperties); those still fail loudly at the API.
-"""
-
 from __future__ import annotations
 
 import json
@@ -74,7 +57,6 @@ def walk(s: Any) -> None:
 
 
 def normalize_file(path: Path) -> None:
-    """Raises OSError or ValueError (json.JSONDecodeError) when the file cannot be normalized."""
     schema = json.loads(path.read_text(encoding="utf-8"))
     walk(schema)
     path.write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")

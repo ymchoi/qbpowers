@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Create codex work dirs under <root>/.temp_files/subcodex/ and print their absolute paths, one per line.
-
-Usage: python new_workdir.py [COUNT]
-
-Names embed a timestamp so age is visible at a glance; the random mkdtemp
-suffix keeps parallel runs collision-free.
-"""
-
 from __future__ import annotations
 
 import argparse

@@ -17,7 +17,8 @@ Read the diff and the code around it.
    - fix: it explains a workaround or a known problem whose cause this repository can change, even if it also states
      policy. The cause should be fixed, or reported as open. Coping with a cause it cannot change is not a
      workaround.
-   - docs: it explains design or policy rather than these lines. Say whether the project's documents already hold it.
+   - docs: it explains design or policy rather than these lines. Say whether the project's documents already hold it
+     and, if they do, in which document and section.
    A string that a program or a tool actually reads, such as CLI help taken from a docstring or a linter directive,
    is not a comment.
    Report as well a comment nearby that the change has made untrue.
