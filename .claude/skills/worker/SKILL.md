@@ -18,7 +18,7 @@ Kinds of work:
 - **Hard**: what to do is not yet known, as with a bug of unknown cause or a design or architecture decision; or the effect, once it runs, is costly to undo; and work of that kind.
 - **Deep Review**: review that looks for defects, reading callers and tests. For the result of a Hard task, and for a change where a mistake is costly to undo, such as deleting or overwriting files or data, handling secrets or permissions, spending money, and changes of that kind.
 - **Writing**: writing or changing code, tests or documents, including carrying out a decided design, however many modules it touches.
-- **General**: the scope is set and judgment stays inside it, as with reproduction, simple diagnosis, measurement, routine checks and light review of a code change (comments, simplicity, documents), and work of that kind.
+- **General**: the scope is set and judgment stays inside it, as with reproduction, simple diagnosis, measurement, routine checks, and light review (comments, tests, documents) or slop review of a code change, and work of that kind.
 - **Research**: web search; research in external documents or open source.
 - **Simple**: nothing to interpret, as with finding, reading and listing, running tests and reporting the result, a spelled-out edit in one or two files, mechanical repetition, and work of that kind.
 - **Computer Use**: one such worker at a time.
@@ -47,7 +47,7 @@ Kinds of work:
 
 Whenever you can, split work across workers and run them in parallel; parallelize only tasks that can run side by side without trouble.
 
-Have a change to code that git does not ignore reviewed before you report it done, by a worker that did not write it: a light review by a General worker, or a Deep Review where its definition applies. A Simple edit or a change to documents alone needs none. Give the reviewer the requirements and the diff of this task's files only, new files included, not your suspicions, and the full path of its guide in this folder: `review-light.md` for a light review, `review-deep.md` for a Deep Review. Do not restate the guide. Fix each finding or reject it with a reason. If a fix adds logic beyond what its finding asked for, have only the fixed lines reviewed once more; no further rounds. Report the counts, what you rejected and why, and what is left.
+Have a change to code that git does not ignore reviewed before you report it done, by workers that did not write it, side by side: a light review by a General worker, or a Deep Review where its definition applies; and a slop review by another General worker. A Simple edit or a change to documents alone needs none. Give each reviewer the requirements and the diff of this task's files only, new files included, not your suspicions, and the full path of its guide in this folder: `review-light.md` for a light review, `review-deep.md` for a Deep Review, `review-slop.md` for a slop review. Do not restate the guide. Fix each finding or reject it with a reason. Before deleting code a slop finding names, check yourself what produces its case here: you know the project and the reviewer may not. If a fix adds logic beyond what its finding asked for, or deletes the handling of a case, have only the changed lines reviewed once more; no further rounds. Report the counts, what you rejected and why, and what is left.
 
 If a worker fails, report it; do not quietly hand its work to a different worker or do it yourself. Trying the same worker again is fine.
 

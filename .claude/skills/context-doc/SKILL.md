@@ -47,7 +47,8 @@ Outside the documents:
 
 - Write only what the code cannot tell and what saves an agent trial and error, work or repeated analysis: reasons, constraints, decisions, working methods, pitfalls, operating facts, the state of the work. This is the test for high value.
 - Do not write what reading the code shows. Keep no history, logs or journals of what was done.
-- A rule is one directive and its reason: split a line that holds several directives. Do not delete a rule whose reason still holds. A rule whose reason is the user's preference changes only when the user says so. Do not mark who decided a rule or when.
+- A rule is one directive and its reason: split a line that holds several directives. Do not delete a rule whose reason still holds, unless the code now holds it. A rule whose reason is the user's preference changes only when the user says so; a failure that replaces such a rule names the user's preference as its reason. Do not mark who decided a rule or when.
+- Before writing a rule, and when an agent breaks one, check whether the code can hold it instead, so that breaking it fails a check or cannot be written; if it can, change the code, let the failure explain why, and keep no rule for it.
 - A date appears only as part of a value: the date a measurement or an external fact was true.
 - Write a guess as a guess, with the way to check it. Build no rule on a guess. Never turn a guess into a fact while tidying.
 - Write into the document the numbers and commands the reader needs in order to act (a limit to stay under, a threshold that explains a result, a command to run): a bare pointer costs a file read each time. A value the reader would meet only while reading the code stays in the code.

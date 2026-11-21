@@ -22,11 +22,9 @@ Read the diff and the code around it.
    A string that a program or a tool actually reads, such as CLI help taken from a docstring or a linter directive,
    is not a comment.
    Report as well a comment nearby that the change has made untrue.
-2. Simplicity. Code for a case that cannot happen; an option, abstraction, fallback or validation nobody asked for;
-   code that behaves differently under test.
-3. Tests. A bug fix comes with a test that reproduces the bug; new behaviour comes with a test. Check only that they
+2. Tests. A bug fix comes with a test that reproduces the bug; new behaviour comes with a test. Check only that they
    exist.
-4. Documents. A document that the change makes wrong is corrected in the same change.
+3. Documents. A document that the change makes wrong is corrected in the same change.
 
 Examples of comment verdicts:
 - keep: `// getRandomValues works on ordinary LAN HTTP, unlike secure-context-only randomUUID.` It stops an edit

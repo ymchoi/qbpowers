@@ -16,6 +16,8 @@
 
 ## Code Changes
 - If a design defect within the task's scope would force a workaround, fix the defect instead, sized to its real impact.
+- When you fix a mistake that could recur, whoever found it, also change the code so that making the same mistake again, here or elsewhere, fails a check or cannot be written, where the cost fits the risk.
+- Copy a pattern from existing code only if you would write it that way now; if not, write it as you would and report the old one. When you replace code, delete the old code and whatever your change leaves unused.
 - Do not add handling for cases that are very unlikely to happen, or just-in-case options, abstractions, fallbacks, exception handling or validation: over-engineering is itself a source of bugs. Validation at boundaries (user input, external APIs, file and queue messages) and handling of external failures that really occur are still required.
 - Do not add production code that behaves differently under test (for example, checks of a test environment variable, or bypasses taken only in tests). If code is hard to test, inject dependencies such as clocks, clients and paths through parameters or a `Protocol`, defaulting to production behavior.
 - Name tests and identifiers by behavior, not by review rounds or task IDs.
@@ -40,6 +42,7 @@
 - Use Pydantic at external or untrusted boundaries: API payloads, LLM outputs, tool arguments, config, webhooks, database DTOs, and queue or file messages.
 - Let local variable types be inferred. Annotate a local only when it clarifies intent or mypy needs it: empty collections, `None` initialization, `Any` quarantine, complex unions, public attributes or ambiguous inference.
 - Use Ruff for Python formatting, linting and import sorting; do not add other tools for these unless committed configuration already requires them.
+- Put a project's own lint bans in a `ruff.toml` in that project: `extend` the root `pyproject.toml`, set `src` to the repository root, and use only `extend-` settings (`extend-select = ["TID251"]`, `extend-banned-api`), since plain ones replace the root's; give each ban a message saying why and what to use instead.
 
 ## Research and External Sources
 - Look for evidence in the repository first: code, configuration and project documentation. Then search the web.
