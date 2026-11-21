@@ -27,14 +27,14 @@ Read the diff and the code around it.
 3. Documents. A document that the change makes wrong is corrected in the same change.
 
 Examples of comment verdicts:
-- keep: `// getRandomValues works on ordinary LAN HTTP, unlike secure-context-only randomUUID.` It stops an edit
-  back to randomUUID, and no name or test says this more cheaply.
-- delete: `"""Return the single registration whose detector matches the input."""` on a function named `detect`.
-- code: `# Ledger names write bottler names without spaces; shop listings spell them out.` above a test: say it in
-  the test's name.
-- fix: `# tmp_path is kept as a compatibility name for tests that wrap the old helpers.`: change the tests and remove
-  the old name.
-- docs: three lines on the admission policy above one function: the policy belongs in the project's document.
+- keep: `# Sync the directory as well: without it a crash can undo the rename on Linux.` It stops an edit that drops
+  the second sync as redundant, and only a crash test could say this in code.
+- delete: `"""Return the user with the given id."""` on a function named `get_user_by_id`.
+- code: `# An empty list must not raise.` above a test: say it in the test's name.
+- fix: `# Sleep two seconds because the cache is sometimes not ready yet.`: wait for the cache's ready signal and
+  remove the sleep.
+- docs: `# Retry policy: three attempts with doubling waits, never after a 4xx answer.` above one function: the
+  policy belongs in the project's document.
 
 ## Findings
 
