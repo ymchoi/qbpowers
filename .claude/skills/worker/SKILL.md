@@ -37,8 +37,8 @@ Kinds of work:
 |---|---|---|---|---|
 | Hard | sol xhigh | sol max | astra xhigh | astra max |
 | Deep Review | sol high | sol xhigh | sol max | astra xhigh |
-| Writing | terra high | sol medium | sol xhigh | astra xhigh |
-| General | terra high | sol medium | sol xhigh | astra xhigh |
+| Writing | terra high | sol high | sol xhigh | astra xhigh |
+| General | terra high | sol high | sol xhigh | astra xhigh |
 | Research | terra medium | terra high | sol medium | astra high |
 | Simple | terra medium | terra high | sol medium | astra high |
 | Computer Use | terra medium | terra high | sol xhigh | astra xhigh |

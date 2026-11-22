@@ -78,8 +78,8 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 |---|---|---|---|---|
 | 어려운 일 | sol xhigh | sol max | astra xhigh | astra max |
 | 깊은 리뷰 | sol high | sol xhigh | sol max | astra xhigh |
-| 코드·테스트·문서 작성 | terra high | sol medium | sol xhigh | astra xhigh |
-| 일반 작업 | terra high | sol medium | sol xhigh | astra xhigh |
+| 코드·테스트·문서 작성 | terra high | sol high | sol xhigh | astra xhigh |
+| 일반 작업 | terra high | sol high | sol xhigh | astra xhigh |
 | 조사 | terra medium | terra high | sol medium | astra high |
 | 단순 작업 | terra medium | terra high | sol medium | astra high |
 | Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
