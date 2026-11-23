@@ -42,7 +42,7 @@ Examples of comment verdicts:
 - Report only what you can state concretely. If you cannot say when it goes wrong, do not report it.
 - Must fix: wrong behaviour or a costly mistake that an input or state that can occur here reaches. Everything
   else, including a missing test or an inaccurate document, is worth considering.
-- Mark a problem that was there before the change as existing: it is reported, not fixed as part of this change.
+- Mark a problem that was there before the change as existing, in addition to must fix or worth considering: it is reported, not fixed as part of this change.
 
 ## Result
 
