@@ -27,7 +27,7 @@ A project is the directory given to the skill. Its documents are `AGENTS.md` at 
 - Does not hold: what reading the code shows (layout, file lists, dependencies), procedures and long explanations (topic documents), progress (status). There is no separate index file.
 
 `docs/status.md`, the state. Overwrite it.
-- Holds work in progress only, in the sections of the [skeleton](#set-up), each present only while it has content: Goal, Next, Running and waiting, Do not, Decided, not yet in a topic document.
+- Holds work in progress only, in the sections of the [skeleton](#set-up), each present only while it has content: Goal, Next, Running and waiting, Do not, Decisions for this unit of work.
 - Finished work leaves the file. It keeps no list of finished work and no facts that seldom change. It may point into `.temp_files/` for material of the work in progress.
 - Create it when work first spans more than one sitting. With no work in progress there is no status file.
 - Work too large for it gets a temporary plan document in `docs/`, with a row in the table. Its first line is `Delete this file when <condition>.` Like status, it may point into `.temp_files/`.
@@ -46,12 +46,13 @@ Outside the documents:
 
 - Write only what the code cannot tell and what saves an agent trial and error, work or repeated analysis: reasons, constraints, decisions, working methods, pitfalls, operating facts, the state of the work. This is the test for high value.
 - Do not write what reading the code shows. Keep no history, logs or journals of what was done.
+- Before writing a sentence, picture a reader who has the code and the other documents and knows nothing of what was said in this session. If that reader would do the right thing without the sentence, do not write it. A cap that was set and then lifted, a setting changed and changed back, a plan dropped before it began, a proposal turned down, and changes of that kind leave no sentence. Proposing a dropped idea again costs the user one answer. A line about it costs every reader every time.
 - A rule is one directive and its reason: split a line that holds several directives. Do not delete a rule whose reason still holds, unless the code now holds it. A rule whose reason is the user's preference changes only when the user says so; a failure that replaces such a rule names the user's preference as its reason. Do not mark who decided a rule or when.
 - Before writing a rule, and when an agent breaks one, check whether the code can hold it instead, so that breaking it fails a check or cannot be written; if it can, change the code, let the failure explain why, and keep no rule for it.
 - A date appears only as part of a value: the date a measurement or an external fact was true.
 - Write a guess as a guess, with the way to check it. Build no rule on a guess. Never turn a guess into a fact while tidying.
 - Write into the document the numbers and commands the reader needs in order to act (a limit to stay under, a threshold that explains a result, a command to run): a bare pointer costs a file read each time. A value the reader would meet only while reading the code stays in the code.
-- No decision log, no decision numbers: a decision becomes a rule with its reason in the document that owns it. Refer to a rule by a link to its section; when the section holds several rules, name the rule in a few words.
+- No decision log, no decision numbers. A decision that outlives the work becomes a rule with its reason in the document that owns it. Refer to a rule by a link to its section; when the section holds several rules, name the rule in a few words.
 - If a document says the code does one thing and the code does another, follow the code, and fix the document in the same change. If the code breaks a rule, keep the rule and tell the user.
 - Write every document in English. Keep Korean only where English would be wrong or ambiguous, not merely less familiar. Such places are rare; when unsure, write English. This rule is for documents only: talk to the user in the user's language.
 
@@ -59,9 +60,11 @@ Outside the documents:
 
 In normal work only the main session edits the documents. When you start a worker, ask it to end its report with what the documents need, and apply that yourself. Workers that compress, split, restructure or review under this skill are the exception.
 
+Judge for yourself how long a decision holds. Do not ask the user. If it holds only for the task in hand, write it nowhere. If it holds until a unit of work ends, write it in status with the condition that ends it. When the unit ends, delete it without moving it. Only a decision that outlives the work becomes a rule in `AGENTS.md` or a topic document. When unsure, take the shorter life. When a document nears its limit, delete what has ended before shortening what remains.
+
 Write in the same turn when:
-1. The user decides something: write it as a rule with its reason in the document that owns it (`AGENTS.md` if it always applies). If no document owns it yet, create one. While a unit of work is running, you may note it in status instead and move it when the unit ends.
-2. A unit of work ends (a merge, a measurement, a verification): remove it from status, and move what must be kept (rules, pitfalls, operating facts) to topic documents.
+1. The user decides something. A reversal deletes the earlier entry and adds nothing. For other decisions, apply the lifetime rule above. If a decision becomes a rule, write it with its reason in the document that owns it (`AGENTS.md` if it always applies). If no document owns it yet, create one.
+2. A unit of work ends (a merge, a measurement, a verification). Remove it from status. Move only what outlives the work (such as lasting rules, pitfalls and operating facts) to topic documents.
 3. The next steps, the waits or the running work change: update status.
 4. A code change makes a document wrong: fix that document in the same change.
 
@@ -135,9 +138,9 @@ Document budget: <N> tokens
 
 - <What was tried and failed, and how it failed>. Lifted when <condition>.
 
-## Decided, not yet in a topic document
+## Decisions for this unit of work
 
-- <Directive>: <reason>.
+- <Decision>. Ends when <condition>.
 ```
 
 ## Restructure
@@ -158,7 +161,7 @@ Commit only when the user asks.
 
 ## Compress, split or hand over
 
-What goes first: history, what the code shows, duplicates (keep the owner, link to it), rules whose reason no longer holds. Then wording, without losing a condition or an exception.
+First remove history, what the code shows, duplicates (keep the owner and link to it), rules whose reason no longer holds, and decisions that have ended. Then shorten what remains without losing a condition or an exception.
 
 - `AGENTS.md` or status over 5,000: compress it under 4,000. If only high-value content remains and compression would cost some of it, hand content over to topic documents.
 - A topic document over 5,000: compress it under 4,000. If that would cost high-value content, split it into two or more documents.
@@ -187,6 +190,7 @@ Start a worker that did not write the text. It reads every document of the proje
 7. Korean that English could carry, and sentences that are unclear;
 8. rows of the document table whose "When you" does not match how the document is used;
 9. material in `ref/` for which no document gives a reason. Report it; do not delete it: it cannot be made again, so the user decides.
+10. sentences that only record a withdrawal, rejection, reversal or cancellation, and decisions whose unit of work has already ended.
 
 If the documents are more than one worker can read to the end with care, split them by document among several workers; each reads its share to the end and checks it against the rest of the set.
 
