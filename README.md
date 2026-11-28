@@ -199,9 +199,9 @@ cp .claude/agents/general-purpose.md /path/to/project/.claude/agents/
 
 프로젝트에 두 파일이 함께 있으면 Claude Code는 기본적으로 `CLAUDE.md`만 읽는다. 둘 다 읽게 하려면 `/config`에서 "Project instructions"를 `claude-md-and-agents-md`로 바꾼다. 이 값은 사용자 설정, 관리자가 정한 설정, `--settings`로 지정한 파일에서 읽는다. 프로젝트나 로컬 설정에 넣어도 적용되지 않는다.
 
-### Claude Code 다시 시작
+### 실행 중에 설치했을 때
 
-Claude Code 실행 중에 `.claude/skills/`나 `.claude/agents/`를 새로 만들었다면 Claude Code를 다시 시작한다. 스킬 폴더만 새로 만들었다면 `/reload-skills`로도 불러올 수 있다.
+Claude Code는 실행 중에 새로 넣은 스킬과 에이전트 파일도 다시 시작하지 않고 불러온다. 새 스킬이 보이지 않으면 `/reload-skills`를 실행한다. 새 에이전트를 찾지 못하면 Claude Code를 다시 시작한다.
 
 ## 라이선스
 
