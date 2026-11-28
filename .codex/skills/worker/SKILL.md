@@ -24,11 +24,11 @@ Kinds of work:
 |---|---|---|---|---|
 | Hard | sol xhigh | sol max | astra xhigh | astra max |
 | Deep Review | sol high | sol xhigh | sol max | astra xhigh |
-| Writing | terra high | sol high | sol xhigh | astra xhigh |
-| General | terra high | sol high | sol xhigh | astra xhigh |
-| Research | terra medium | terra high | sol medium | astra high |
-| Simple | terra medium | terra high | sol medium | astra high |
-| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
+| Writing | sol medium | sol high | sol xhigh | sol max |
+| General | sol medium | sol high | sol xhigh | sol max |
+| Research | sol xhigh | sol max | sol max | astra max |
+| Simple | terra high | sol medium | sol high | sol xhigh |
+| Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 
 `astra` is `gpt-6.2-astra`, `sol` is `gpt-6.2-sol` and `terra` is `gpt-6.1-terra`; the word after the model is its `reasoning_effort`. Service tier follows the parent session; this skill has no speed option.
 

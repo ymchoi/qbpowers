@@ -63,11 +63,11 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 
 | 일 | claude-lighter | claude-light | claude | claude-max |
 |---|---|---|---|---|
-| 어려운 일 | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| 깊은 리뷰 | opus medium | opus high | opus high | opus xhigh |
-| 코드·테스트·문서 작성 | opus medium | opus high | opus high | opus xhigh |
-| 일반 작업 | sonnet medium | opus medium | opus medium | opus xhigh |
-| 조사 | haiku max | sonnet high | opus medium | opus high |
+| 어려운 일 | opus high | opus xhigh | opus max | fable xhigh |
+| 깊은 리뷰 | opus medium | opus high | opus xhigh | opus max |
+| 코드·테스트·문서 작성 | sonnet high | opus medium | opus high | opus xhigh |
+| 일반 작업 | sonnet high | opus medium | opus high | opus xhigh |
+| 조사 | sonnet xhigh | opus xhigh | opus max | opus max |
 | 단순 작업 | haiku max | sonnet high | opus medium | opus high |
 | Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 | 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
@@ -78,11 +78,11 @@ Claude 워커는 `opus`, `sonnet`, `haiku`, `fable` 서브에이전트다. GPT �
 |---|---|---|---|---|
 | 어려운 일 | sol xhigh | sol max | astra xhigh | astra max |
 | 깊은 리뷰 | sol high | sol xhigh | sol max | astra xhigh |
-| 코드·테스트·문서 작성 | terra high | sol high | sol xhigh | astra xhigh |
-| 일반 작업 | terra high | sol high | sol xhigh | astra xhigh |
-| 조사 | terra medium | terra high | sol medium | astra high |
-| 단순 작업 | terra medium | terra high | sol medium | astra high |
-| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
+| 코드·테스트·문서 작성 | sol medium | sol high | sol xhigh | sol max |
+| 일반 작업 | sol medium | sol high | sol xhigh | sol max |
+| 조사 | sol xhigh | sol max | sol max | astra max |
+| 단순 작업 | terra high | sol medium | sol high | sol xhigh |
+| Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 | 메인 세션 Claude 권장 모델·effort | opus xhigh | opus xhigh | fable xhigh | fable max |
 
 ### 메인 에이전트의 모델

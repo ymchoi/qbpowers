@@ -25,11 +25,11 @@ Kinds of work:
 
 | Work | claude-lighter | claude-light | claude | claude-max |
 |---|---|---|---|---|
-| Hard | opus xhigh | opus xhigh | opus xhigh | fable xhigh |
-| Deep Review | opus medium | opus high | opus high | opus xhigh |
-| Writing | opus medium | opus high | opus high | opus xhigh |
-| General | sonnet medium | opus medium | opus medium | opus xhigh |
-| Research | haiku max | sonnet high | opus medium | opus high |
+| Hard | opus high | opus xhigh | opus max | fable xhigh |
+| Deep Review | opus medium | opus high | opus xhigh | opus max |
+| Writing | sonnet high | opus medium | opus high | opus xhigh |
+| General | sonnet high | opus medium | opus high | opus xhigh |
+| Research | sonnet xhigh | opus xhigh | opus max | opus max |
 | Simple | haiku max | sonnet high | opus medium | opus high |
 | Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 
@@ -37,11 +37,11 @@ Kinds of work:
 |---|---|---|---|---|
 | Hard | sol xhigh | sol max | astra xhigh | astra max |
 | Deep Review | sol high | sol xhigh | sol max | astra xhigh |
-| Writing | terra high | sol high | sol xhigh | astra xhigh |
-| General | terra high | sol high | sol xhigh | astra xhigh |
-| Research | terra medium | terra high | sol medium | astra high |
-| Simple | terra medium | terra high | sol medium | astra high |
-| Computer Use | terra medium | terra high | sol xhigh | astra xhigh |
+| Writing | sol medium | sol high | sol xhigh | sol max |
+| General | sol medium | sol high | sol xhigh | sol max |
+| Research | sol xhigh | sol max | sol max | astra max |
+| Simple | terra high | sol medium | sol high | sol xhigh |
+| Computer Use | terra medium | terra high | sol xhigh | sol xhigh |
 
 `opus`, `sonnet`, `haiku` and `fable` are Claude subagents; `astra` (`gpt-6.2-astra`), `sol` (`gpt-6.2-sol`) and `terra` (`gpt-6.1-terra`) run through codex. The word after the model is its effort. Computer Use always runs through codex, in the claude columns too.
 
