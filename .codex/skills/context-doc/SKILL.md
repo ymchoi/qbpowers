@@ -48,6 +48,7 @@ Outside the documents:
 - Do not write what reading the code shows. Keep no history, logs or journals of what was done.
 - Before writing a sentence, picture a reader who has the code and the other documents and knows nothing of what was said in this session. If that reader would do the right thing without the sentence, do not write it. A cap that was set and then lifted, a setting changed and changed back, a plan dropped before it began, a proposal turned down, and changes of that kind leave no sentence. Proposing a dropped idea again costs the user one answer. A line about it costs every reader every time.
 - A rule is one directive and its reason: split a line that holds several directives. Do not delete a rule whose reason still holds, unless the code now holds it. A rule whose reason is the user's preference changes only when the user says so; a failure that replaces such a rule names the user's preference as its reason. That protects a standing preference, not a decision whose work has ended: delete an ended decision without asking, whoever made it. Do not mark who decided a rule or when.
+- Before deleting a decision, an instruction or a prohibition that the user did not reverse, check two things: that its work has ended, shown by the code, a command or a record and not by a plan or a merge; and that nothing in the code or the documents that remain leads a reader to do what it forbade or to miss what it required. If either fails, keep the sentence.
 - Before writing a rule, and when an agent breaks one, check whether the code can hold it instead, so that breaking it fails a check or cannot be written; if it can, change the code, let the failure explain why, and keep no rule for it.
 - A date appears only as part of a value: the date a measurement or an external fact was true.
 - Write a guess as a guess, with the way to check it. Build no rule on a guess. Never turn a guess into a fact while tidying.
@@ -60,11 +61,11 @@ Outside the documents:
 
 In normal work only the main session edits the documents. When you start a worker, ask it to end its report with what the documents need, and apply that yourself. Workers that compress, split, restructure or review under this skill are the exception.
 
-Judge for yourself how long a decision holds. Do not ask the user. If it holds only for the task in hand, write it nowhere. If it holds until a unit of work ends, write it in status with the condition that ends it. When the unit ends, delete it without moving it. Only a decision that outlives the work becomes a rule in `AGENTS.md` or a topic document. When unsure, take the shorter life. When a document nears its limit, delete what has ended before shortening what remains.
+Judge for yourself how long a decision holds. Do not ask the user. If it holds only for the task in hand, write it nowhere. If it holds until a unit of work ends, write it in status with the condition that ends it. When the unit ends, delete it without moving it, after the deletion check in [What to write](#what-to-write). Only a decision that outlives the work becomes a rule in `AGENTS.md` or a topic document. When unsure, take the shorter life. When a document nears its limit, delete what has ended before shortening what remains.
 
 Write in the same turn when:
 1. The user decides something. A reversal deletes the earlier entry and adds nothing. For other decisions, apply the lifetime rule above. If a decision becomes a rule, write it with its reason in the document that owns it (`AGENTS.md` if it always applies). If no document owns it yet, create one.
-2. A unit of work ends (a merge, a measurement, a verification). Remove it from status. Move only what outlives the work (such as lasting rules, pitfalls and operating facts) to topic documents.
+2. A unit of work ends (a merge, a measurement, a verification). Remove it from status; a decision in it goes only after the deletion check in [What to write](#what-to-write). Move only what outlives the work (such as lasting rules, pitfalls and operating facts) to topic documents.
 3. The next steps, the waits or the running work change: update status.
 4. A code change makes a document wrong: fix that document in the same change.
 
@@ -150,7 +151,7 @@ For a project whose documents exist but whose `AGENTS.md` has no rule block.
 1. Do not ask the user first. Carry it to the end, then report.
 2. Whoever writes reads every document of the project to the end, and does not choose what to keep by searching or sampling. Take in documentation that serves the same purpose from outside `AGENTS.md` and `docs/`, such as a `README.md` at the project's top or files in subfolders of `docs/`.
 3. Decide from evidence where evidence decides: where a document says the code does one thing and the code does another, the document follows the code; history and logs go; duplicated content goes to one owner document; a decision log dissolves into rules with reasons in the documents that own them; what the code shows goes. The project's own rules on what the rule block covers (an index file, a decision log, when to update or check documents) go too: the block replaces them.
-4. Where evidence cannot decide (a rule whose reason is unknown, a rule the code breaks, two statements that conflict and the code does not settle), keep the statement as it is and list it for the user. Write a reason only where the repository states it (code, tests, history, another document). Otherwise the rule stays without a reason until the user gives it: never invent one. A decision whose work has ended is not such a case: delete it without asking, whoever made it.
+4. Where evidence cannot decide (a rule whose reason is unknown, a rule the code breaks, two statements that conflict and the code does not settle), keep the statement as it is and list it for the user. Write a reason only where the repository states it (code, tests, history, another document). Otherwise the rule stays without a reason until the user gives it: never invent one. A decision whose work has ended, by the deletion check in [What to write](#what-to-write), is not such a case: delete it without asking, whoever made it.
 5. Translate into English under the language rule.
 6. Build `AGENTS.md` as in [The documents](#the-documents), keep every document under its limit, and delete each old file once its content is at its new place. Fix links into the project from the rest of the repository, and search the repository for the names of the old files: the script finds broken links, not prose that names a file. A statement elsewhere about how this project keeps its documents (a parent's index convention) gives way to the project's `AGENTS.md`: remove it or point it there.
 7. Before writing, keep the documents as they were for the reviewer: a version-control revision if they are committed unchanged, otherwise a copy under `.temp_files/`. Writing may go to a worker, whose report lists what it removed, what it changed because the code disagreed, what it added from the code, and what it left for the user. Then the main session starts a worker that did not write the result. It compares the result with the documents as they were, restores high-value content that was lost, checks the writer's changes and additions against the code, and does the whole-set review. If the documents as they were are more than one worker can read to the end with care, split them by document among several such workers.
@@ -161,7 +162,7 @@ Commit only when the user asks.
 
 ## Compress, split or hand over
 
-First remove history, what the code shows, duplicates (keep the owner and link to it), rules whose reason no longer holds, and decisions that have ended. Then shorten what remains without losing a condition or an exception.
+First remove history, what the code shows, duplicates (keep the owner and link to it), rules whose reason no longer holds, and decisions that have ended and pass the deletion check in [What to write](#what-to-write). Then shorten what remains without losing a condition or an exception.
 
 - `AGENTS.md` or status over 5,000: compress it under 4,000. If only high-value content remains and compression would cost some of it, hand content over to topic documents.
 - A topic document over 5,000: compress it under 4,000. If that would cost high-value content, split it into two or more documents.
@@ -190,7 +191,7 @@ Start a worker that did not write the text. It reads every document of the proje
 7. Korean that English could carry, and sentences that are unclear;
 8. rows of the document table whose "When you" does not match how the document is used;
 9. material in `ref/` for which no document gives a reason. Report it; do not delete it: it cannot be made again, so the user decides.
-10. sentences that only record a withdrawal, rejection, reversal or cancellation, and decisions whose unit of work has already ended. Delete these, whoever made them; do not list them for the user.
+10. sentences that only record a withdrawal, rejection, reversal or cancellation, and decisions whose unit of work has already ended. Delete those that pass the deletion check in [What to write](#what-to-write), whoever made them, and keep the rest; do not list them for the user.
 
 If the documents are more than one worker can read to the end with care, split them by document among several workers; each reads its share to the end and checks it against the rest of the set.
 
