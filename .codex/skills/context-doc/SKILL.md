@@ -151,12 +151,16 @@ For a project whose documents exist but whose `AGENTS.md` has no rule block.
 1. Do not ask the user first. Carry it to the end, then report.
 2. Whoever writes reads every document of the project to the end, and does not choose what to keep by searching or sampling. Take in documentation that serves the same purpose from outside `AGENTS.md` and `docs/`, such as a `README.md` at the project's top or files in subfolders of `docs/`.
 3. Decide from evidence where evidence decides: where a document says the code does one thing and the code does another, the document follows the code; history and logs go; duplicated content goes to one owner document; a decision log dissolves into rules with reasons in the documents that own them; what the code shows goes. The project's own rules on what the rule block covers (an index file, a decision log, when to update or check documents) go too: the block replaces them.
-4. Where evidence cannot decide (a rule whose reason is unknown, a rule the code breaks, two statements that conflict and the code does not settle), keep the statement as it is and list it for the user. Write a reason only where the repository states it (code, tests, history, another document). Otherwise the rule stays without a reason until the user gives it: never invent one. A decision whose work has ended, by the deletion check in [What to write](#what-to-write), is not such a case: delete it without asking, whoever made it.
+4. Where evidence cannot decide, list for the user only what a reader could act on wrongly until the user decides it: a rule the code breaks, two statements that conflict and the code does not settle, and cases of that kind; keep those statements as they are until then. Settle the rest yourself without listing it:
+   - A rule whose reason is unknown stays as it is. Write a reason only where the repository states it (code, tests, history, another document); never invent one, and do not delete the rule on your own judgment of its worth.
+   - A statement you cannot verify becomes a guess with the way to check it if a reader acts on it, and goes if none does (a past observation nobody uses, a measurement nothing depends on, and content of that kind).
+   - An unclear sentence is repaired where the repository settles its meaning, and otherwise stays as it is.
+   - A decision whose work has ended, by the deletion check in [What to write](#what-to-write), goes without asking, whoever made it.
 5. Translate into English under the language rule.
 6. Build `AGENTS.md` as in [The documents](#the-documents), keep every document under its limit, and delete each old file once its content is at its new place. Fix links into the project from the rest of the repository, and search the repository for the names of the old files: the script finds broken links, not prose that names a file. A statement elsewhere about how this project keeps its documents (a parent's index convention) gives way to the project's `AGENTS.md`: remove it or point it there.
 7. Before writing, keep the documents as they were for the reviewer: a version-control revision if they are committed unchanged, otherwise a copy under `.temp_files/`. Writing may go to a worker, whose report lists what it removed, what it changed because the code disagreed, what it added from the code, and what it left for the user. Then the main session starts a worker that did not write the result. It compares the result with the documents as they were, restores high-value content that was lost, checks the writer's changes and additions against the code, and does the whole-set review. If the documents as they were are more than one worker can read to the end with care, split them by document among several such workers.
 8. Run the check script.
-9. Report: each rule removed and why, where content moved, and the list for the user to decide.
+9. Report: each rule removed and why, where content moved, and what step 4 lists for the user.
 
 Commit only when the user asks.
 
@@ -195,7 +199,7 @@ Start a worker that did not write the text. It reads every document of the proje
 
 If the documents are more than one worker can read to the end with care, split them by document among several workers; each reads its share to the end and checks it against the rest of the set.
 
-The reviewer fixes what evidence decides, as in [Restructure](#restructure), lists the rest in its report, and runs the check script. Pass the list to the user.
+The reviewer fixes what evidence decides and settles the rest, as in [Restructure](#restructure) steps 3 and 4, and runs the check script. Its report lists for the user only what step 4 lists there, and the material of item 9. Pass that list to the user.
 
 ## Check script
 
